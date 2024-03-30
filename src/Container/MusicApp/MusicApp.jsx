@@ -32,6 +32,7 @@ const MusicApp = () => {
   const [downloadStatus, setDownloadStatus] = useState(
     Array(songs.length).fill(false)
   );
+  const [currentTime, setCurrentTime] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [history, setHistory] = useState({
     file: "",
@@ -99,7 +100,7 @@ const playSong = (index, image, fileName, file) => {
   setAudioPlayer(newAudioPlayer);
   setCurrentSongIndex(index);
   setMusic(0);
-  setIsPlaying(true);
+  setIsPlaying(false);
   playPause();
 };
 
@@ -134,24 +135,28 @@ useEffect(() => {
 
 
   const handleNext = () => {
-    setAudioPlayer(new Audio(songs[currentSongIndex + 1]?.file?.asset?.url));
+    setAudioPlayer(
+      new Audio(filteredSongs()[currentSongIndex + 1]?.file?.asset?.url)
+    );
     setCurrentSongIndex(currentSongIndex + 1);
     setMusic(0);
-    setIsPlaying(true);
+    setIsPlaying(false);
     playPause()
   };
   const handlePrev = () => {
     if (currentSongIndex === 0) {
-      setAudioPlayer(new Audio(songs[0]?.file?.asset?.url));
+      setAudioPlayer(new Audio(filteredSongs()[0]?.file?.asset?.url));
       setCurrentSongIndex(0);
       setMusic(0);
-      setIsPlaying(true);
+      setIsPlaying(false);
       playPause()
     } else {
-      setAudioPlayer(new Audio(songs[currentSongIndex - 1]?.file?.asset?.url));
+      setAudioPlayer(
+        new Audio(filteredSongs()[currentSongIndex - 1]?.file?.asset?.url)
+      );
       setCurrentSongIndex(currentSongIndex - 1);
       setMusic(0);
-      setIsPlaying(true);
+      setIsPlaying(false);
       playPause()
     }
   };
@@ -164,11 +169,11 @@ useEffect(() => {
 
       const handleEnded = () => {
          setAudioPlayer(
-           new Audio(songs[currentSongIndex + 1]?.file?.asset?.url)
+           new Audio(filteredSongs()[currentSongIndex + 1]?.file?.asset?.url)
          );
          setCurrentSongIndex(currentSongIndex + 1);
          setMusic(0);
-         setIsPlaying(true);
+         setIsPlaying(false);
          playPause();
       };
 
@@ -305,6 +310,23 @@ const filteredSongs = () => {
      // Handle error
    }
  };
+
+ const handleTimeUpdate = () => {
+   setCurrentTime(audioPlayer.currentTime);
+ };
+
+
+ useEffect(() => {
+   // Add an event listener for time updates when the audio player is set
+   if (audioPlayer) {
+     audioPlayer.addEventListener("timeupdate", handleTimeUpdate);
+
+     // Cleanup function to remove the event listener when component unmounts or audio player changes
+     return () => {
+       audioPlayer.removeEventListener("timeupdate", handleTimeUpdate);
+     };
+   }
+ }, [audioPlayer]);
 
   return (
     <>
@@ -471,7 +493,7 @@ const filteredSongs = () => {
         <div className="md:h-[16.6vh] fixed bottom-0 right-0 left-0">
           <div className="flex items-center justify-around h-[16.6vh] my-auto ">
             <img
-              src={songs[currentSongIndex]?.audioimg?.asset?.url}
+              src={filteredSongs()[currentSongIndex]?.audioimg?.asset?.url}
               alt="album-cover"
               className="h-[2rem] object-cover"
             />
@@ -517,7 +539,9 @@ const filteredSongs = () => {
                 min="0"
                 max="1"
                 step="0.01"
-                value={music}
+                value={
+                  audioPlayer ? currentTime / audioPlayer.duration || 0 : 0
+                } // Ensure division by zero is handled
                 onChange={handleMusicChange}
                 style={{ width: "100%" }}
               />
