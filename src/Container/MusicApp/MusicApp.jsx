@@ -29,6 +29,7 @@ const MusicApp = () => {
   const [audioPlayer, setAudioPlayer] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [download, setDownload] = useState(false)
+  const [liked, setLiked] = useState(false)
   const [downloadStatus, setDownloadStatus] = useState(
     Array(songs.length).fill(false)
   );
@@ -62,10 +63,13 @@ const MusicApp = () => {
 
 
 
-  const handleVolumeChange = (event) => {
-    setVolume(event.target.value);
-    audioPlayer.volume = event.target.value;
-  };
+    const handleVolumeChange = (event) => {
+      const newVolume = event.target.value;
+      setVolume(newVolume);
+      if (audioPlayer) {
+        audioPlayer.volume = newVolume;
+      }
+    };
 
   const handleMusicChange = (event) => {
     const value = parseFloat(event.target.value); // Parse float instead of int
@@ -101,6 +105,7 @@ const playSong = (index, image, fileName, file) => {
   setCurrentSongIndex(index);
   setMusic(0);
   setIsPlaying(false);
+  setVolume(audioPlayer ? audioPlayer.volume : volume); 
   playPause();
 };
 
@@ -134,22 +139,40 @@ useEffect(() => {
 
 
 
-  const handleNext = () => {
+  const handleNext = (file, image, fileName) => {
+    if (audioPlayer) {
+      audioPlayer.pause();
+    }
     setAudioPlayer(
       new Audio(filteredSongs()[currentSongIndex + 1]?.file?.asset?.url)
     );
     setCurrentSongIndex(currentSongIndex + 1);
     setMusic(0);
     setIsPlaying(false);
-    playPause()
+    setVolume(audioPlayer ? audioPlayer.volume : volume);
+    playPause();
+    setHistory({
+      file: file,
+      image: image,
+      fileName: fileName,
+    });
   };
-  const handlePrev = () => {
+  const handlePrev = (file, image, fileName) => {
+    if (audioPlayer) {
+      audioPlayer.pause();
+    }
     if (currentSongIndex === 0) {
       setAudioPlayer(new Audio(filteredSongs()[0]?.file?.asset?.url));
       setCurrentSongIndex(0);
       setMusic(0);
       setIsPlaying(false);
-      playPause()
+      setVolume(audioPlayer ? audioPlayer.volume : volume);
+      playPause();
+      setHistory({
+        file: file,
+        image: image,
+        fileName: fileName,
+      });
     } else {
       setAudioPlayer(
         new Audio(filteredSongs()[currentSongIndex - 1]?.file?.asset?.url)
@@ -157,7 +180,13 @@ useEffect(() => {
       setCurrentSongIndex(currentSongIndex - 1);
       setMusic(0);
       setIsPlaying(false);
-      playPause()
+      setVolume(audioPlayer ? audioPlayer.volume : volume);
+      playPause();
+      setHistory({
+        file: file,
+        image: image,
+        fileName: fileName,
+      });
     }
   };
 
@@ -168,13 +197,22 @@ useEffect(() => {
       };
 
       const handleEnded = () => {
-         setAudioPlayer(
-           new Audio(filteredSongs()[currentSongIndex + 1]?.file?.asset?.url)
-         );
-         setCurrentSongIndex(currentSongIndex + 1);
-         setMusic(0);
-         setIsPlaying(false);
-         playPause();
+        if (audioPlayer) {
+          audioPlayer.pause();
+        }
+        setAudioPlayer(
+          new Audio(filteredSongs()[currentSongIndex + 1]?.file?.asset?.url)
+        );
+        setCurrentSongIndex(currentSongIndex + 1);
+        setMusic(0);
+        setIsPlaying(false);
+        setVolume(audioPlayer ? audioPlayer.volume : volume);
+        playPause();
+        setHistory({
+          file: filteredSongs()[currentSongIndex + 1]?.file?.asset?.url,
+          image: filteredSongs()[currentSongIndex + 1]?.audioimg?.asset?.url,
+          fileName: filteredSongs()[currentSongIndex + 1]?.title,
+        });
       };
 
       audioPlayer.addEventListener("loadedmetadata", handleLoadedMetadata);
@@ -331,6 +369,64 @@ const filteredSongs = () => {
   return (
     <>
       <div>
+        {/* ------------------------Alert-------------------------- */}
+
+        {liked && (<div className="absolute top-1 right-1 z-10">
+          <div
+            aria-live="assertive"
+            className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
+          >
+            <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+              <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                <div className="p-4">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg
+                        className="h-6 w-6 text-green-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="ml-3 w-0 flex-1 pt-0.5">
+                      <p className="text-sm font-medium text-gray-900">
+                        Successfully saved!
+                      </p>
+                      <p className="mt-1 text-sm text-gray-500">
+                        File save click here to view folder.
+                      </p>
+                    </div>
+                    <div className="ml-4 flex flex-shrink-0">
+                      <button
+                        type="button"
+                        className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      >
+                        <span className="sr-only">Close</span>
+                        <svg
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>)}
+        {/* ------------------------Alert-------------------------- */}
         <div className="flex h-[70vh]">
           <div className="sideBar md:w-[20vw] w-[30vw] ">
             <div className="flex flex-col justify-center items-center text-[#fff] text-[20px] font-bold">
@@ -408,7 +504,7 @@ const filteredSongs = () => {
                 width="150"
                 ariaLabel="dna-loading"
                 wrapperStyle={{}}
-                wrapperClass="dna-wrapper"
+                wrapperclassName="dna-wrapper"
               />
             </div>
           )}
@@ -499,7 +595,13 @@ const filteredSongs = () => {
             />
             <SkipPrevious
               style={{ fontSize: 40, color: "#fff" }}
-              onClick={handlePrev}
+              onClick={() =>
+                handlePrev(
+                  filteredSongs()[currentSongIndex]?.audioimg?.asset?.url,
+                  filteredSongs()[currentSongIndex]?.file?.asset?.url,
+                  filteredSongs()[currentSongIndex]?.title
+                )
+              }
               className="cursor-pointer"
             />
             <span onClick={playPause} className="cursor-pointer">
@@ -512,7 +614,13 @@ const filteredSongs = () => {
 
             <SkipNext
               style={{ fontSize: 40, color: "#fff" }}
-              onClick={handleNext}
+              onClick={() =>
+                handleNext(
+                  filteredSongs()[currentSongIndex]?.audioimg?.asset?.url,
+                  filteredSongs()[currentSongIndex]?.file?.asset?.url,
+                  filteredSongs()[currentSongIndex]?.title
+                )
+              }
               className="cursor-pointer"
             />
             <div>
