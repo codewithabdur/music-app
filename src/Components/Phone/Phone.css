@@ -1,0 +1,66 @@
+.phoneSignin{
+    display: flex;
+    width: 100%;
+    height: 83vh;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.phoneContent{
+    text-align: center;
+}
+
+
+
+/* From uiverse.io by @Ali-Tahmazi99 */
+.phoneAuthButton {
+ display: inline-block;
+ width: 150px;
+ height: 50px;
+ border-radius: 10px;
+ border: 1px solid #03045e;
+ position: relative;
+ overflow: hidden;
+ transition: all 0.5s ease-in;
+ z-index: 1;
+}
+
+.phoneAuthButton::before,
+.phoneAuthButton::after {
+ content: '';
+ position: absolute;
+ top: 0;
+ width: 0;
+ height: 100%;
+ transform: skew(15deg);
+ transition: all 0.5s;
+ overflow: hidden;
+ z-index: -1;
+}
+
+.phoneAuthButton::before {
+ left: -10px;
+ background: #240046;
+}
+
+.phoneAuthButton::after {
+ right: -10px;
+ background: #5a189a;
+}
+
+.phoneAuthButton:hover::before,
+.phoneAuthButton:hover::after {
+ width: 58%;
+}
+
+.phoneAuthButton:hover span {
+ color: #e0aaff;
+ transition: 0.3s;
+}
+
+.phoneAuthButton span {
+ color: #ffff;
+ font-size: 18px;
+ transition: all 0.3s ease-in;
+}

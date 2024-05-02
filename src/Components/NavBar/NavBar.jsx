@@ -30,9 +30,9 @@ const NavBar = () => {
       });
   }, []);
 
-  useEffect(() =>{
-    console.clear()
-  },[])
+  // useEffect(() =>{
+  //   console.clear()
+  // },[])
   return (
     <>
       <header className="text-[#fff] body-font">
