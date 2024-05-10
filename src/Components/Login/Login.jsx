@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { PiEyeClosedDuotone } from "react-icons/pi";
+import { FaHome } from "react-icons/fa";
 import { TiEye } from "react-icons/ti";
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
@@ -120,6 +121,13 @@ const Login = () => {
       )}
       {/* -------------------------------Banner----------------------------- */}
       <div className="bg-black">
+        <div className="fixed md:top-4 md:left-4 text-[#02eda7] text-[35px] hover:text-[#62fff5] transition-all duration-[.3s] bottom-4 right-4 cursor-pointer">
+          <FaHome
+            onClick={() => {
+              navigate(`/`);
+            }}
+          />
+        </div>
         <div className="flex justify-center items-center min-h-screen w-[80%] mx-auto">
           <form className="bg-gray-900 opacity-75 w-full shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4">
             <div className="mb-4">
@@ -180,7 +188,7 @@ const Login = () => {
                 className="bg-gradient-to-r from-purple-800 to-green-500 hover:from-pink-500 hover:to-green-500 text-white font-bold py-2 px-4 rounded focus:ring transform transition hover:scale-105 duration-300 ease-in-out"
                 type="button"
                 onClick={(e) => {
-                  submitData(e)
+                  submitData(e);
                 }}
               >
                 {isLoading ? "Loading..." : "Login"}

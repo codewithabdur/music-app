@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PiEyeClosedDuotone } from "react-icons/pi";
 import { TiEye } from "react-icons/ti";
+import { FaHome } from "react-icons/fa";
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -17,7 +18,7 @@ const Register = () => {
   const [dataFilled, setDataFilled] = useState(false);
   const [registered, setRegistered] = useState(false);
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(flase)
+  const [error, setError] = useState(false)
   const [file, setFile] = useState(defaultProfileImageURL);
   const [userData, setUserData] = useState({
     fullName: "",
@@ -207,6 +208,13 @@ const Register = () => {
           </div>
         </div>
       )}
+      <div className="fixed md:top-4 md:left-4 text-[#02eda7] text-[35px] hover:text-[#62fff5] transition-all duration-[.3s] bottom-4 right-4 cursor-pointer">
+        <FaHome
+          onClick={() => {
+            navigate(`/`);
+          }}
+        />
+      </div>
 
       {dataFilled && (
         <div className="absolute top-1 right-1 z-10">

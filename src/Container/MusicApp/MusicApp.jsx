@@ -194,6 +194,7 @@ const MusicApp = () => {
     if (audioPlayer) {
       audioPlayer.pause();
     }
+    window.document.title = `CodeWithAbdur || MelodicVerse - Your Personalized Music Experience ${fileName}`;
 
     // Set up the new audio player
     const newAudioPlayer = new Audio(songs[index]?.file?.asset?.url);
@@ -700,12 +701,6 @@ const MusicApp = () => {
                     </span>
                     <li className="my-1 cursor-pointer">Liked Song</li>
                   </div>
-                  {/* <div className="flex items-center">
-                    <span className="mr-1">
-                      <RiAlbumFill />
-                    </span>
-                    <li className="my-1 cursor-pointer">Albums</li>
-                  </div> */}
                   <div className="flex items-center">
                     <span className="mr-1">
                       <MdPlaylistPlay />
@@ -746,14 +741,11 @@ const MusicApp = () => {
                       className=" rounded-lg cursor-pointer select-none shadow-lg bg-white boxShadow border-black border hover:bg-[#5a0a72] transition-all duration-300"
                     >
                       <div className="relative overflow-hidden">
-                        {/* {post.banner.asset.url && ( */}
                         <img
-                          // src={post.banner.asset.url}
                           src={song.audioimg.asset.url}
-                          // alt={post.banner.alt}
-                          className="rounded-t-lg object-cover"
+                          alt={song.title? song.title : "image"}
+                          className="rounded-t-lg object-cover text-white"
                         />
-                        {/* )} */}
                       </div>
                       <div className="flex justify-between">
                         <p className="pl-2 pb-2 text-lg text-[#b3b3b3] mt-2">
@@ -793,7 +785,6 @@ const MusicApp = () => {
                             )
                           }
                         />
-                        ;
                         {/* <CgPlayListCheck className="text-[3rem] m-2 text-[#646464]" /> */}
                         <CgPlayListAdd
                           className="text-[3rem] m-2 text-[#646464]"
