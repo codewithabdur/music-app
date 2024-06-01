@@ -93,7 +93,7 @@ const Register = () => {
           const imageURL = await getDownloadURL(storageRef);
 
           const db = getFirestore();
-          const userDocRef = doc(db, "users", userData.fullName);
+          const userDocRef = doc(db, "users", userCredential.user.uid);
           await setDoc(userDocRef, {
             uid: userCredential.user.uid,
             fullName: userData.fullName,

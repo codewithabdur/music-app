@@ -1,7 +1,7 @@
 import React from 'react'
 import "./HomePage.css"
-import {NavBar} from '../../Components'
-import {Footer, MusicApp} from '../../Container';
+import {NavBar} from '../Components'
+import {Footer, MusicApp} from '../Container';
 
 const HomePage = () => {
   return (

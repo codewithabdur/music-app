@@ -32,6 +32,7 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
+import { useNavigate } from "react-router-dom";
 
 const MusicApp = () => {
   const [songs, setSongs] = useState([]);
@@ -56,7 +57,9 @@ const MusicApp = () => {
     file: "",
     image: "",
     fileName: "",
+    desc: "",
   });
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -89,25 +92,6 @@ const MusicApp = () => {
     };
     // Call the function immediately
     fetchUserData();
-    const fetchLikedSongs = async () => {
-      try {
-        const db = getFirestore();
-        if (userData && userData.uid) {
-          const likedSongsDocRef = doc(db, "likedSongs", userData.uid);
-          const likedSongsDocSnapshot = await getDoc(likedSongsDocRef);
-          if (likedSongsDocSnapshot) {
-            const likedSongsData = likedSongsDocSnapshot.data().songs || [];
-            setLikedSongs(likedSongsData);
-            console.log(likedSongsData);
-            localStorage.setItem("likedSong", JSON.stringify(likedSongsData));
-            // console.log(likedSongs);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching liked songs:", error);
-      }
-    };
-    fetchLikedSongs();
         const fetchPlaylistSongs = async () => {
           try {
             const db = getFirestore();
@@ -131,8 +115,7 @@ const MusicApp = () => {
         fetchPlaylistSongs();
         const playlistlocal = localStorage.getItem("playlist");
         setLocalPlaylist(JSON.parse(playlistlocal));
-        const likedSonglocal = localStorage.getItem("likedSong");
-        setLocalLiked(JSON.parse(likedSonglocal));
+        
     // Include auth.currentUser as a dependency
   }, []);
 
@@ -183,18 +166,19 @@ const MusicApp = () => {
     }
   };
 
-  const playSong = (index, image, fileName, file) => {
+  const playSong = (index, image, fileName, file, desc) => {
     // Pause the previous audio player if it exists
     setHistory({
       file: file,
       image: image,
       fileName: fileName,
+      desc: desc,
     });
 
     if (audioPlayer) {
       audioPlayer.pause();
     }
-    window.document.title = `CodeWithAbdur || MelodicVerse - Your Personalized Music Experience ${fileName}`;
+    window.document.title = `CodeWithAbdur || MelodicVerse - ${fileName} Song Your Personalized Music Experience`;
 
     // Set up the new audio player
     const newAudioPlayer = new Audio(songs[index]?.file?.asset?.url);
@@ -209,11 +193,14 @@ const MusicApp = () => {
 
   useEffect(() => {
     const checkHistory = async () => {
-      if (
-        history.file !== "" &&
-        history.image !== "" &&
-        history.fileName !== ""
-      ) {
+      // Check if necessary fields are not empty
+      if (history.file && history.image && history.fileName) {
+        // Ensure userData.uid is defined
+        if (!userData.uid) {
+          console.error("userData.uid is undefined");
+          return;
+        }
+
         const db = getFirestore();
         const historyDocRef = doc(db, "history", userData.uid);
 
@@ -228,6 +215,7 @@ const MusicApp = () => {
               file: history.file,
               image: history.image,
               fileName: history.fileName,
+              desc: history.desc,
             };
 
             // Check if the history data already exists in the array
@@ -235,7 +223,8 @@ const MusicApp = () => {
               return (
                 item.file === historyData.file &&
                 item.image === historyData.image &&
-                item.fileName === historyData.fileName
+                item.fileName === historyData.fileName &&
+                item.desc === historyData.desc
               );
             });
 
@@ -244,10 +233,8 @@ const MusicApp = () => {
               const updatedHistory = [...existingHistory, historyData];
               await setDoc(historyDocRef, { history: updatedHistory });
               console.log("History stored successfully!");
-              console.clear();
             } else {
               console.log("History data already exists, not adding duplicate.");
-              console.clear();
             }
           } else {
             // If the document doesn't exist, create a new one with the history array
@@ -256,23 +243,33 @@ const MusicApp = () => {
                 file: history.file,
                 image: history.image,
                 fileName: history.fileName,
+                desc: history.desc,
               },
             ];
 
             await setDoc(historyDocRef, { history: historyData });
             console.log("History stored successfully!");
-            console.clear();
           }
         } catch (error) {
           console.error("Error storing history:", error);
-          console.clear();
         }
+      } else {
+        console.log("Required history fields are missing:", { history });
       }
     };
+
+    // Call checkHistory function
     checkHistory();
   }, [history, userData.uid]);
 
-  const handleNext = (file, image, fileName) => {
+  const checkPlayer = () =>{
+     if (audioPlayer) {
+       audioPlayer.pause();
+     }
+  }
+
+
+  const handleNext = (file, image, fileName, desc) => {
     if (audioPlayer) {
       audioPlayer.pause();
     }
@@ -288,9 +285,10 @@ const MusicApp = () => {
       file: file,
       image: image,
       fileName: fileName,
+      desc: desc,
     });
   };
-  const handlePrev = (file, image, fileName) => {
+  const handlePrev = (file, image, fileName, desc) => {
     if (audioPlayer) {
       audioPlayer.pause();
     }
@@ -305,6 +303,7 @@ const MusicApp = () => {
         file: file,
         image: image,
         fileName: fileName,
+        desc: desc,
       });
     } else {
       setAudioPlayer(
@@ -319,6 +318,7 @@ const MusicApp = () => {
         file: file,
         image: image,
         fileName: fileName,
+        desc: desc,
       });
     }
   };
@@ -345,6 +345,7 @@ const MusicApp = () => {
           file: filteredSongs()[currentSongIndex + 1]?.file?.asset?.url,
           image: filteredSongs()[currentSongIndex + 1]?.audioimg?.asset?.url,
           fileName: filteredSongs()[currentSongIndex + 1]?.title,
+          desc: desc,
         });
       };
 
@@ -437,74 +438,14 @@ const MusicApp = () => {
     }
   };
 
-  const handleLiked = async (index, image, fileName, title, desc) => {
-    // Get the Firestore document for liked songs
-    const likedSongsDocRef = doc(db, "likedSongs", userData.uid);
+  
 
-    try {
-      // Check if the document already exists
-      const likedSongsDocSnapshot = await getDoc(likedSongsDocRef);
-
-      // If the document exists, update the liked songs array
-      if (likedSongsDocSnapshot.exists()) {
-        const existingLikedSongs = likedSongsDocSnapshot.data().songs || [];
-        const likedSongData = {
-          title: title,
-          image: image,
-          description: desc,
-          file: fileName,
-          index,
-          // Add other fields as needed
-        };
-
-        // Check if the song already exists in the liked songs array
-        const songExists = existingLikedSongs.some(
-          (song) =>
-            song.title === fileName &&
-            song.image === image &&
-            song.description === file,
-          index
-          // Add other conditions as needed to uniquely identify a song
-        );
-
-        if (!songExists) {
-          // Add the new song data to the existing liked songs array
-          const updatedLikedSongs = [...existingLikedSongs, likedSongData];
-
-          // Update the document with the updated liked songs array
-          await setDoc(likedSongsDocRef, { songs: updatedLikedSongs });
-          console.log("Song liked successfully!");
-        } else {
-          console.log(
-            "Song already exists in liked songs, not adding duplicate."
-          );
-        }
-      } else {
-        // If the document doesn't exist, create a new one with the liked songs array
-        const likedSongData = [
-          {
-            title: fileName,
-            image: image,
-            description: file,
-            index,
-            // Add other fields as needed
-          },
-        ];
-
-        await setDoc(likedSongsDocRef, { songs: likedSongData });
-        console.log("Song liked successfully!");
-      }
-    } catch (error) {
-      console.error("Error liking song:", error);
-      // Handle error
+  const handlePlaylist = async (url, image, title, desc ) => {
+    if (!userData) {
+      console.error("User data or UID is missing.");
+      return;
     }
-        const playlistlocal = localStorage.getItem("playlist");
-        setLocalPlaylist(JSON.parse(playlistlocal));
-        const likedSonglocal = localStorage.getItem("likedSong");
-        setLocalLiked(JSON.parse(likedSonglocal));
-  };
 
-  const handlePlaylist = async (index, image, fileName, file) => {
     // Get the Firestore document for liked songs
     const playlistDocRef = doc(db, "playlist", userData.uid);
 
@@ -516,18 +457,19 @@ const MusicApp = () => {
       if (playListSongsDocSnapshot.exists()) {
         const existingLikedSongs = playListSongsDocSnapshot.data().songs || [];
         const likedSongData = {
-          title: fileName,
+          title: desc,
+          file: url,
+          description: title,
           image: image,
-          description: file,
           // Add other fields as needed
         };
 
         // Check if the song already exists in the liked songs array
         const songExists = existingLikedSongs.some(
           (song) =>
-            song.title === fileName &&
+            song.title === desc &&
             song.image === image &&
-            song.description === file
+            song.description === title // Corrected from 'file' to 'desc'
           // Add other conditions as needed to uniquely identify a song
         );
 
@@ -537,36 +479,35 @@ const MusicApp = () => {
 
           // Update the document with the updated liked songs array
           await setDoc(playlistDocRef, { songs: updatedLikedSongs });
-          console.log("Song add playlist successfully!");
+          console.log("Song added to playlist successfully!");
         } else {
-          console.log(
-            "Song already exists in add playlist songs, not adding duplicate."
-          );
-          console.clear();
+          console.log("Song already exists in playlist, not adding duplicate.");
         }
       } else {
         // If the document doesn't exist, create a new one with the liked songs array
         const likedSongData = [
           {
-            title: fileName,
+            title: desc,
+            file: url,
+            description: title, // Corrected from 'file' to 'desc'
             image: image,
-            description: file,
             // Add other fields as needed
           },
         ];
 
         await setDoc(playlistDocRef, { songs: likedSongData });
-        console.log("Song add playlist successfully!");
-        console.clear();
+        console.log("Song added to playlist successfully!");
       }
+
+      // Update local storage and state
+      const playlistlocal = localStorage.getItem("playlist");
+      setLocalPlaylist(JSON.parse(playlistlocal || "[]")); // Ensure default empty array
+
+      const likedSonglocal = localStorage.getItem("likedSong");
+      setLocalLiked(JSON.parse(likedSonglocal || "[]")); // Ensure default empty array
     } catch (error) {
       console.error("Error adding song:", error);
-      console.clear();
     }
-        const playlistlocal = localStorage.getItem("playlist");
-        setLocalPlaylist(JSON.parse(playlistlocal));
-        const likedSonglocal = localStorage.getItem("likedSong");
-        setLocalLiked(JSON.parse(likedSonglocal));
   };
 
   const handleTimeUpdate = () => {
@@ -689,19 +630,32 @@ const MusicApp = () => {
               <div className="my-4 p-2">
                 <span className=" text-[#a7a6a6]">Library</span>
                 <ul className="flex flex-col">
-                  <div className="flex items-center mt-4">
+                  <div
+                    className="flex items-center mt-4"
+                    onClick={() => {navigate(`/history`)
+                      checkPlayer()
+                    }}
+                  >
                     <span className="mr-1">
                       <FaHistory />
                     </span>
                     <li className="my-1 cursor-pointer">History</li>
                   </div>
-                  <div className="flex items-center">
+                  {/* <div
+                    className="flex items-center"
+                    onClick={() => navigate(`/likedpage`)}
+                  >
                     <span className="mr-1">
                       <IoMdMusicalNote />
                     </span>
                     <li className="my-1 cursor-pointer">Liked Song</li>
-                  </div>
-                  <div className="flex items-center">
+                  </div> */}
+                  <div
+                    className="flex items-center"
+                    onClick={() => {navigate(`/playlistpage`)
+                      checkPlayer()
+                    }}
+                  >
                     <span className="mr-1">
                       <MdPlaylistPlay />
                     </span>
@@ -735,7 +689,8 @@ const MusicApp = () => {
                           index,
                           song.audioimg.asset.url,
                           song.title,
-                          song?.file?.asset?.url
+                          song?.file?.asset?.url,
+                          song?.description
                         )
                       }
                       className=" rounded-lg cursor-pointer select-none shadow-lg bg-white boxShadow border-black border hover:bg-[#5a0a72] transition-all duration-300"
@@ -743,7 +698,7 @@ const MusicApp = () => {
                       <div className="relative overflow-hidden">
                         <img
                           src={song.audioimg.asset.url}
-                          alt={song.title? song.title : "image"}
+                          alt={song.title ? song.title : "image"}
                           className="rounded-t-lg object-cover text-white"
                         />
                       </div>
@@ -765,26 +720,7 @@ const MusicApp = () => {
                         </button>
                       </div>
                       <div className="flex justify-between">
-                        <FaHeart
-                          className={`text-[2rem] m-2 ${
-                            likedSongs.some(
-                              (likedSong) =>
-                                likedSong.title === song.title &&
-                                likedSong.image === song.audioimg.asset.url
-                            )
-                              ? "text-red-500" // Apply red color if liked
-                              : "text-gray-400" // Apply gray color if not liked
-                          } hover:text-[#ff5b5b]`}
-                          onClick={() =>
-                            handleLiked(
-                              index,
-                              song.audioimg.asset.url,
-                              song.title,
-                              song.description,
-                              song.file.asset.url
-                            )
-                          }
-                        />
+                        
                         {/* <CgPlayListCheck className="text-[3rem] m-2 text-[#646464]" /> */}
                         <CgPlayListAdd
                           className="text-[3rem] m-2 text-[#646464]"
@@ -810,8 +746,12 @@ const MusicApp = () => {
           <div className="flex items-center justify-around h-[16.6vh] my-auto ">
             <img
               src={filteredSongs()[currentSongIndex]?.audioimg?.asset?.url}
-              alt="album-cover"
-              className="h-[2rem] object-cover"
+              alt={
+                filteredSongs()[currentSongIndex]
+                  ? filteredSongs()[currentSongIndex]?.title
+                  : "song image"
+              }
+              className="h-[2rem] object-cover text-white"
             />
             <SkipPrevious
               style={{ fontSize: 40, color: "#fff" }}

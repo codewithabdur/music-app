@@ -1,4 +1,5 @@
-export {default as HomePage} from "./HomePage/HomePage"
 export {default as MusicApp} from "./MusicApp/MusicApp"
 export {default as Footer} from "./Footer/Footer"
 export {default as Error} from "./Error/Error"
+export {default as History} from "./History/History"
+export {default as Playlist} from "./Playlist/Playlist"
