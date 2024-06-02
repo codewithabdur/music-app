@@ -38,6 +38,7 @@ const Login = () => {
       );
       // Store user information in local storage
       localStorage.setItem("user", userCredential.user.email)
+      localStorage.setItem("uid", userCredential.user.uid)
       localStorage.removeItem("verifiedPhone");
       setIsLoading(false);
       navigate(`/`);

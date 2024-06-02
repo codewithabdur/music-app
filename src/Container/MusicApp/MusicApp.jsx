@@ -23,12 +23,9 @@ import {
   query,
   where,
   getDocs,
-  updateDoc,
   doc,
-  addDoc,
   getFirestore,
   setDoc,
-  arrayUnion,
   getDoc,
 } from "firebase/firestore";
 import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
@@ -42,12 +39,16 @@ const MusicApp = () => {
   const [audioPlayer, setAudioPlayer] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [download, setDownload] = useState(false);
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState([]);
+  const [alert, setAlert] = useState(false);
   const [userData, setUserData] = useState([]);
-  const [likedSongs, setLikedSongs] = useState([]);
-  const [playlistSongs, setPlaylistSongs] = useState([]);
+  const [playlist, setPlaylist] = useState([]);
   const [localLiked, setLocalLiked] = useState([]);
   const [localPlaylist, setLocalPlaylist] = useState([]);
+  const [songSaved, setSongSaved] = useState(null);
+  const [songExist, setSongExist] = useState(null);
+  const [songRemoved, setSongRemoved] = useState(null);
+  const [songNotRemoved, setSongNotRemoved] = useState(null);
   const [downloadStatus, setDownloadStatus] = useState(
     Array(songs.length).fill(false)
   );
@@ -59,7 +60,10 @@ const MusicApp = () => {
     fileName: "",
     desc: "",
   });
-  const navigate = useNavigate()
+  const [showMore, setShowMore] = useState(
+    Array(songs.length).fill(false)
+  );
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -86,41 +90,187 @@ const MusicApp = () => {
             setProfileImage(imageUrl);
           }
         } else {
-          // console.clear();
+          console.clear();
         }
       }
     };
     // Call the function immediately
     fetchUserData();
-        const fetchPlaylistSongs = async () => {
-          try {
-            const db = getFirestore();
-            if (userData && userData.uid) {
-              const playlistDocRef = doc(db, "playlist", userData.uid);
-              const playlistDocSnapshot = await getDoc(playlistDocRef);
-              if (playlistDocSnapshot.exists()) {
-                const playlistSongsData =
-                  playlistDocSnapshot.data().songs || [];
-                setPlaylistSongs(playlistSongsData);
-                localStorage.setItem(
-                  "playlist",
-                  JSON.stringify(playlistSongsData)
-                );
-              }
-            }
-          } catch (error) {
-            console.error("Error fetching playlist songs:", error);
-          }
-        };
-        fetchPlaylistSongs();
-        const playlistlocal = localStorage.getItem("playlist");
-        setLocalPlaylist(JSON.parse(playlistlocal));
-        
-    // Include auth.currentUser as a dependency
+    console.clear()
   }, []);
+  const fetchLikedSongs = async () => {
+    if (!userData) {
+      console.error("User data or UID is missing.");
+      console.clear()
+      return;
+    }
 
- 
+    const likedDocRef = doc(db, "liked", userData.uid);
 
+    try {
+      const likedSongsDocSnapshot = await getDoc(likedDocRef);
+
+      if (likedSongsDocSnapshot.exists()) {
+        const likedSongs = likedSongsDocSnapshot.data().songs || [];
+        setLocalLiked(likedSongs);
+      } else {
+        console.log("No liked songs found.");
+      }
+    } catch (error) {
+      console.error("Error fetching liked songs:", error);
+    }
+    console.clear()
+  };
+
+ const fetchPlaylistSongs = async () => {
+   if (!userData || !userData.uid) {
+     console.error("User data or UID is missing.");
+     return;
+   }
+
+   const db = getFirestore();
+   const playlistDocRef = doc(db, "playlist", userData.uid);
+
+   try {
+     const playlistDocSnapshot = await getDoc(playlistDocRef);
+
+     if (playlistDocSnapshot.exists()) {
+       const playlistData = playlistDocSnapshot.data().songs
+       setLocalPlaylist(playlistData)
+     } else {
+       console.log("Playlist document does not exist");
+     }
+   } catch (error) {
+     console.error("Error fetching playlist:", error);
+   }
+ };
+
+
+  const handleLiked = async (url, image, description, title) => {
+    if (!userData || !userData.uid) {
+      console.error("User data or UID is missing.");
+      return;
+    }
+
+    const likedDocRef = doc(db, "liked", userData.uid);
+
+    try {
+      console.log("Fetching liked songs document...");
+      const likedSongsDocSnapshot = await getDoc(likedDocRef);
+
+      const likedSongData = {
+        title: title,
+        file: url,
+        description: description,
+        image: image,
+      };
+
+      if (likedSongsDocSnapshot.exists()) {
+        const existingLikedSongs = likedSongsDocSnapshot.data().songs || [];
+
+        const songExists = existingLikedSongs.some(
+          (song) =>
+            song.title === title &&
+            song.image === image &&
+            song.description === description
+        );
+
+        if (!songExists) {
+          const updatedLikedSongs = [...existingLikedSongs, likedSongData];
+          await setDoc(likedDocRef, { songs: updatedLikedSongs });
+          setSongSaved("Song added to liked successfully!");
+          setTimeout(() => {
+            setSongSaved(null);
+          }, 2000);
+        } else {
+          setSongExist("Song already exists in liked, not adding duplicate.");
+          setTimeout(() => {
+            setSongExist(null);
+          }, 2000);
+        }
+      } else {
+        await setDoc(likedDocRef, { songs: [likedSongData] });
+        console.log(
+          "No liked songs found. Created new liked songs document and added song."
+        );
+      }
+
+      // Fetch updated liked songs
+      fetchLikedSongs();
+      fetchPlaylistSongs();
+    } catch (error) {
+      console.error("Error adding song:", error);
+    }
+  };
+
+  const handlePlaylist = async (url, image, title, description) => {
+    if (!userData || !userData.uid) {
+      console.error("User data or UID is missing.");
+      return;
+    }
+
+    const playlistDocRef = doc(db, "playlist", userData.uid);
+
+    try {
+      const playlistDocSnapshot = await getDoc(playlistDocRef);
+
+      if (playlistDocSnapshot.exists()) {
+        const existingPlaylistSongs = playlistDocSnapshot.data().songs || [];
+        const playlistSongData = {
+          title: title,
+          file: url,
+          description: description,
+          image: image,
+        };
+
+        const songExists = existingPlaylistSongs.some(
+          (song) =>
+            song.title === title &&
+            song.image === image &&
+            song.description === description
+        );
+
+        if (!songExists) {
+          const updatedPlaylistSongs = [
+            ...existingPlaylistSongs,
+            playlistSongData,
+          ];
+          await setDoc(playlistDocRef, { songs: updatedPlaylistSongs });
+          setSongSaved("Successfully saved in playlist");
+          setTimeout(() => {
+            setSongSaved(null);
+          }, 2000);
+        } else {
+          setSongExist(
+            "Song already exists in playlist, not adding duplicate."
+          );
+          setTimeout(() => {
+            setSongExist(null);
+          }, 2000);
+        }
+      } else {
+        const playlistSongData = [
+          {
+            title: title,
+            file: url,
+            description: description,
+            image: image,
+          },
+        ];
+
+        await setDoc(playlistDocRef, { songs: playlistSongData });
+        console.log(
+          "No playlist songs found. Created new playlist and added song."
+        );
+      }
+
+      // Fetch updated playlist songs
+      fetchLikedSongs();
+      fetchPlaylistSongs();
+    } catch (error) {
+      console.error("Error adding song:", error);
+    }
+  };
 
 
   const toggleDownloadStatus = (index) => {
@@ -191,83 +341,50 @@ const MusicApp = () => {
   };
   // console.log(userData.uid);
 
-  useEffect(() => {
-    const checkHistory = async () => {
-      // Check if necessary fields are not empty
-      if (history.file && history.image && history.fileName) {
-        // Ensure userData.uid is defined
-        if (!userData.uid) {
-          console.error("userData.uid is undefined");
-          return;
-        }
+  const checkHistory = async () => {
+    console.clear()
+    if (history.file && history.image && history.fileName && history.desc) {
+      const historyDocRef = doc(db, "history", userData.uid);
 
-        const db = getFirestore();
-        const historyDocRef = doc(db, "history", userData.uid);
+      try {
+        const historyDocSnapshot = await getDoc(historyDocRef);
+        const historyData = { ...history };
 
-        try {
-          // Get the existing document
-          const historyDocSnapshot = await getDoc(historyDocRef);
+        if (historyDocSnapshot.exists()) {
+          const existingHistory = historyDocSnapshot.data().history || [];
+          const isDuplicate = existingHistory.some(
+            (item) =>
+              item.file === historyData.file &&
+              item.image === historyData.image &&
+              item.fileName === historyData.fileName &&
+              item.desc === historyData.desc
+          );
 
-          // If the document exists, update the history array
-          if (historyDocSnapshot.exists()) {
-            const existingHistory = historyDocSnapshot.data().history || [];
-            const historyData = {
-              file: history.file,
-              image: history.image,
-              fileName: history.fileName,
-              desc: history.desc,
-            };
-
-            // Check if the history data already exists in the array
-            const isDuplicate = existingHistory.some((item) => {
-              return (
-                item.file === historyData.file &&
-                item.image === historyData.image &&
-                item.fileName === historyData.fileName &&
-                item.desc === historyData.desc
-              );
-            });
-
-            // If it's not a duplicate, update the array and set the document
-            if (!isDuplicate) {
-              const updatedHistory = [...existingHistory, historyData];
-              await setDoc(historyDocRef, { history: updatedHistory });
-              console.log("History stored successfully!");
-            } else {
-              console.log("History data already exists, not adding duplicate.");
-            }
-          } else {
-            // If the document doesn't exist, create a new one with the history array
-            const historyData = [
-              {
-                file: history.file,
-                image: history.image,
-                fileName: history.fileName,
-                desc: history.desc,
-              },
-            ];
-
-            await setDoc(historyDocRef, { history: historyData });
+          if (!isDuplicate) {
+            const updatedHistory = [...existingHistory, historyData];
+            await setDoc(historyDocRef, { history: updatedHistory });
             console.log("History stored successfully!");
+          } else {
+            console.log("History data already exists, not adding duplicate.");
           }
-        } catch (error) {
-          console.error("Error storing history:", error);
+        } else {
+          await setDoc(historyDocRef, { history: [historyData] });
+          console.log("History stored successfully!");
         }
-      } else {
-        console.log("Required history fields are missing:", { history });
+      } catch (error) {
+        console.error("Error storing history:", error);
       }
-    };
+    } else {
+      console.log("Required history fields are missing:", { history });
+      console.clear()
+    }
+  };
 
-    // Call checkHistory function
-    checkHistory();
-  }, [history, userData.uid]);
-
-  const checkPlayer = () =>{
-     if (audioPlayer) {
-       audioPlayer.pause();
-     }
-  }
-
+  const checkPlayer = () => {
+    if (audioPlayer) {
+      audioPlayer.pause();
+    }
+  };
 
   const handleNext = (file, image, fileName, desc) => {
     if (audioPlayer) {
@@ -359,7 +476,7 @@ const MusicApp = () => {
     }
   }, [audioPlayer, music]);
 
-  useEffect(() => {
+  const fetchSongs = () => {
     oldclient
       .fetch(
         `
@@ -390,6 +507,13 @@ const MusicApp = () => {
       .catch((err) => {
         console.log(err);
       });
+  };
+
+  useEffect(() => {
+      fetchSongs()
+      checkHistory()
+      fetchPlaylistSongs()
+      fetchLikedSongs()
   }, []);
 
   const handleDownload = async (musicUrl, fileName, index) => {
@@ -438,78 +562,6 @@ const MusicApp = () => {
     }
   };
 
-  
-
-  const handlePlaylist = async (url, image, title, desc ) => {
-    if (!userData) {
-      console.error("User data or UID is missing.");
-      return;
-    }
-
-    // Get the Firestore document for liked songs
-    const playlistDocRef = doc(db, "playlist", userData.uid);
-
-    try {
-      // Check if the document already exists
-      const playListSongsDocSnapshot = await getDoc(playlistDocRef);
-
-      // If the document exists, update the liked songs array
-      if (playListSongsDocSnapshot.exists()) {
-        const existingLikedSongs = playListSongsDocSnapshot.data().songs || [];
-        const likedSongData = {
-          title: desc,
-          file: url,
-          description: title,
-          image: image,
-          // Add other fields as needed
-        };
-
-        // Check if the song already exists in the liked songs array
-        const songExists = existingLikedSongs.some(
-          (song) =>
-            song.title === desc &&
-            song.image === image &&
-            song.description === title // Corrected from 'file' to 'desc'
-          // Add other conditions as needed to uniquely identify a song
-        );
-
-        if (!songExists) {
-          // Add the new song data to the existing liked songs array
-          const updatedLikedSongs = [...existingLikedSongs, likedSongData];
-
-          // Update the document with the updated liked songs array
-          await setDoc(playlistDocRef, { songs: updatedLikedSongs });
-          console.log("Song added to playlist successfully!");
-        } else {
-          console.log("Song already exists in playlist, not adding duplicate.");
-        }
-      } else {
-        // If the document doesn't exist, create a new one with the liked songs array
-        const likedSongData = [
-          {
-            title: desc,
-            file: url,
-            description: title, // Corrected from 'file' to 'desc'
-            image: image,
-            // Add other fields as needed
-          },
-        ];
-
-        await setDoc(playlistDocRef, { songs: likedSongData });
-        console.log("Song added to playlist successfully!");
-      }
-
-      // Update local storage and state
-      const playlistlocal = localStorage.getItem("playlist");
-      setLocalPlaylist(JSON.parse(playlistlocal || "[]")); // Ensure default empty array
-
-      const likedSonglocal = localStorage.getItem("likedSong");
-      setLocalLiked(JSON.parse(likedSonglocal || "[]")); // Ensure default empty array
-    } catch (error) {
-      console.error("Error adding song:", error);
-    }
-  };
-
   const handleTimeUpdate = () => {
     setCurrentTime(audioPlayer.currentTime);
   };
@@ -526,12 +578,113 @@ const MusicApp = () => {
     }
   }, [audioPlayer]);
 
+  const handeleRemoveSong = async (index) => {
+    const db = getFirestore();
+    const playlistDocRef = doc(db, "playlist", userData.uid);
+
+    try {
+      const playlistDocSnapshot = await getDoc(playlistDocRef);
+
+      if (playlistDocSnapshot.exists()) {
+        const existingPlaylist = playlistDocSnapshot.data().songs || [];
+
+        if (index >= 0 && index < existingPlaylist.length) {
+          const updatedPlaylist = [
+            ...existingPlaylist.slice(0, index),
+            ...existingPlaylist.slice(index + 1),
+          ];
+
+          await setDoc(playlistDocRef, { songs: updatedPlaylist });
+          console.log("Song removed from playlist successfully!")
+          setSongRemoved("Song removed from playlist successfully!")
+          setTimeout(() => {
+            setSongRemoved(null)
+          },2000)
+          return updatedPlaylist; // return the updated playlist
+        } else {
+          console.log("Index out of bounds", error);
+          setSongNotRemoved("Index out of bounds");
+           setTimeout(() => {
+             setSongNotRemoved(null);
+           }, 2000);
+        }
+      } else {
+        console.log("Playlist document does not exist", error);
+        setSongNotRemoved("Playlist document does not exist");
+        setTimeout(() => {
+          setSongNotRemoved(null);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Error removing song from playlist:", error);
+      setSongNotRemoved("Sorry might be internet Issues or userData is Not Found!")
+      setTimeout(() => {
+        setSongNotRemoved(null);
+      }, 2000);
+    }
+  };
+  const handeleRemoveLikedSong = async (index) => {
+    const db = getFirestore();
+    const likedDocRef = doc(db, "liked", userData.uid);
+
+    try {
+      const likedDocSnapshot = await getDoc(likedDocRef);
+
+      if (likedDocSnapshot.exists()) {
+        const existingLiked = likedDocSnapshot.data().songs || [];
+
+        if (index >= 0 && index < existingLiked.length) {
+          const updatedLiked = [
+            ...existingLiked.slice(0, index),
+            ...existingLiked.slice(index + 1),
+          ];
+
+          await setDoc(likedDocRef, { songs: updatedLiked });
+          console.log("Song removed from liked successfully!");
+          setSongRemoved("Song removed from liked successfully!");
+          setTimeout(() => {
+            setSongRemoved(null);
+          }, 2000);
+          return updatedLiked; // return the updated playlist
+        } else {
+          console.log("Index out of bounds", error);
+          setSongNotRemoved("Index out of bounds");
+          setTimeout(() => {
+            setSongNotRemoved(null);
+          }, 2000);
+        }
+      } else {
+        console.log("Liked document does not exist", error);
+        setSongNotRemoved("Liked document does not exist");
+        setTimeout(() => {
+          setSongNotRemoved(null);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Error removing song from liked:", error);
+      setSongNotRemoved("Sorry might be internet Issues or userData is Not Found!")
+      setTimeout(() => {
+        setSongNotRemoved(null);
+      }, 2000);
+    }
+  };
+
+     const toggleShowMore = (index) => {
+       setShowMore((prevShowMore) => {
+         const updatedShowMore = [...prevShowMore];
+         updatedShowMore[songIndex] = !updatedShowMore[songIndex];
+         return updatedShowMore;
+       });
+     };
+
   return (
     <>
       <div>
         {/* ------------------------Alert-------------------------- */}
 
-        {liked && (
+        {songSaved == null ? (
+          ""
+        ) : (
           <div className="absolute top-1 right-1 z-10">
             <div
               aria-live="assertive"
@@ -562,11 +715,193 @@ const MusicApp = () => {
                           Successfully saved!
                         </p>
                         <p className="mt-1 text-sm text-gray-500">
-                          File save click here to view folder.
+                          {songSaved ? songSaved : ""}
                         </p>
                       </div>
                       <div className="ml-4 flex flex-shrink-0">
                         <button
+                          onClick={setSongSaved(null)}
+                          type="button"
+                          className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        >
+                          <span className="sr-only">Close</span>
+                          <svg
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {songExist == null ? (
+          ""
+        ) : (
+          <div className="absolute top-1 right-1 z-10">
+            <div
+              aria-live="assertive"
+              className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
+            >
+              <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+                <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                  <div className="p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg
+                          className="h-6 w-6 text-[#ff0808]"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="ml-3 w-0 flex-1 pt-0.5">
+                        <p className="text-sm font-medium text-gray-900">
+                          Ooops!
+                        </p>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {songExist ? songExist : ""}
+                        </p>
+                      </div>
+                      <div className="ml-4 flex flex-shrink-0">
+                        <button
+                          onClick={setSongExist(null)}
+                          type="button"
+                          className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        >
+                          <span className="sr-only">Close</span>
+                          <svg
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {songNotRemoved == null ? (
+          ""
+        ) : (
+          <div className="absolute top-1 right-1 z-10">
+            <div
+              aria-live="assertive"
+              className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
+            >
+              <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+                <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                  <div className="p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg
+                          className="h-6 w-6 text-[#ff0808]"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="ml-3 w-0 flex-1 pt-0.5">
+                        <p className="text-sm font-medium text-gray-900">
+                          Ooops!
+                        </p>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {songNotRemoved ? songNotRemoved : ""}
+                        </p>
+                      </div>
+                      <div className="ml-4 flex flex-shrink-0">
+                        <button
+                          onClick={setSongNotRemoved(null)}
+                          type="button"
+                          className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        >
+                          <span className="sr-only">Close</span>
+                          <svg
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {songSaved == null ? (
+          ""
+        ) : (
+          <div className="absolute top-1 right-1 z-10">
+            <div
+              aria-live="assertive"
+              className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
+            >
+              <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+                <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                  <div className="p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg
+                          className="h-6 w-6 text-green-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="ml-3 w-0 flex-1 pt-0.5">
+                        <p className="text-sm font-medium text-gray-900">
+                          Successfully saved!
+                        </p>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {songRemoved ? songRemoved : ""}
+                        </p>
+                      </div>
+                      <div className="ml-4 flex flex-shrink-0">
+                        <button
+                          onClick={setSongRemoved(null)}
                           type="button"
                           className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                         >
@@ -591,8 +926,8 @@ const MusicApp = () => {
         {/* ------------------------Alert-------------------------- */}
         <div className="flex h-[70vh]">
           <div className="sideBar md:w-[20vw] w-[30vw] ">
-            <div className="flex flex-col justify-center items-center text-[#fff] text-[20px] font-bold">
-              <div className="mb-4 mt-8 p-2">
+            <div className="flex flex-col md:justify-center justify-start md:items-center items-end text-[#fff] text-[20px] font-bold">
+              <div className="mb-4 md:mt-8 p-2">
                 <span className=" text-[#a7a6a6]">Browse</span>
                 <ul className="flex flex-col">
                   <li
@@ -627,13 +962,14 @@ const MusicApp = () => {
                   </li>
                 </ul>
               </div>
-              <div className="my-4 p-2">
+              <div className="md:my-4 p-2">
                 <span className=" text-[#a7a6a6]">Library</span>
                 <ul className="flex flex-col">
                   <div
                     className="flex items-center mt-4"
-                    onClick={() => {navigate(`/history`)
-                      checkPlayer()
+                    onClick={() => {
+                      navigate(`/history`);
+                      checkPlayer();
                     }}
                   >
                     <span className="mr-1">
@@ -641,19 +977,11 @@ const MusicApp = () => {
                     </span>
                     <li className="my-1 cursor-pointer">History</li>
                   </div>
-                  {/* <div
-                    className="flex items-center"
-                    onClick={() => navigate(`/likedpage`)}
-                  >
-                    <span className="mr-1">
-                      <IoMdMusicalNote />
-                    </span>
-                    <li className="my-1 cursor-pointer">Liked Song</li>
-                  </div> */}
                   <div
-                    className="flex items-center"
-                    onClick={() => {navigate(`/playlistpage`)
-                      checkPlayer()
+                    className="flex items-center md:mb-0 mb-6"
+                    onClick={() => {
+                      navigate(`/playlistpage`);
+                      checkPlayer();
                     }}
                   >
                     <span className="mr-1">
@@ -681,62 +1009,127 @@ const MusicApp = () => {
             <div className="heroSection w-[70vw] md:w-[80vw] h-[70vh] overflow-scroll">
               <div className="md:w-[75vw] w-[65vw] mx-auto h-full">
                 <div className="grid grid-cols-1  sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto ">
-                  {filteredSongs().map((song, index) => (
-                    <div
-                      key={song.slug.current}
-                      onClick={() =>
-                        playSong(
-                          index,
-                          song.audioimg.asset.url,
-                          song.title,
-                          song?.file?.asset?.url,
-                          song?.description
-                        )
-                      }
-                      className=" rounded-lg cursor-pointer select-none shadow-lg bg-white boxShadow border-black border hover:bg-[#5a0a72] transition-all duration-300"
-                    >
-                      <div className="relative overflow-hidden">
-                        <img
-                          src={song.audioimg.asset.url}
-                          alt={song.title ? song.title : "image"}
-                          className="rounded-t-lg object-cover text-white"
-                        />
+                  {filteredSongs().map((song, index) => {
+                    const isSongInPlaylist = localPlaylist.some(
+                      (playlist) => playlist.description === song.title
+                    );
+                    const isSongInLiked = localLiked.some(
+                      (liked) => liked.title === song.title
+                    );
+                    return (
+                      <div
+                        key={song.slug.current}
+                        onClick={() =>
+                          playSong(
+                            index,
+                            song.audioimg.asset.url,
+                            song.title,
+                            song?.file?.asset?.url,
+                            song?.description
+                          )
+                        }
+                        className=" rounded-lg cursor-pointer select-none shadow-lg bg-white boxShadow border-black border hover:bg-[#5a0a72] transition-all duration-300"
+                      >
+                        <div className="relative overflow-hidden">
+                          <img
+                            src={song.audioimg.asset.url}
+                            alt={song.title ? song.title : "image"}
+                            className="rounded-t-lg object-cover text-white"
+                          />
+                        </div>
+                        <div className="flex justify-between">
+                          <p className="pl-2 pb-2 text-lg text-[#b3b3b3] mt-2">
+                            {song.title}
+                          </p>
+                          {/* {showMore[index] ? (
+                            <p className="pl-2 py-2 text-lg text-[#b3b3b3] mt-2">
+                              {song.description}....
+                              <a
+                                onClick={() => toggleShowMore(songIndex)}
+                                className="text-[#6c11b6]"
+                              >
+                                Show Less
+                              </a>
+                            </p>
+                          ) : (
+                            <p className="pl-2 py-2 text-lg text-[#b3b3b3] mt-2">
+                              {song.description.substring(0, 100)}....
+                              <a
+                                className="text-[#6c11b6]"
+                                onClick={() => toggleShowMore(songIndex)}
+                              >
+                                Show More
+                              </a>
+                            </p>
+                          )} */}
+                          <button
+                            className="downloadButton mr-1 my-2"
+                            onClick={() =>
+                              handleDownload(
+                                song?.file?.asset?.url,
+                                song.title,
+                                index
+                              )
+                            }
+                          >
+                            {downloadStatus[index]
+                              ? "Downloading.."
+                              : "Download"}
+                          </button>
+                        </div>
+                        <div className="flex justify-between z-10">
+                          {isSongInLiked ? (
+                            <FaHeart
+                              onClick={() => {
+                                handeleRemoveLikedSong(index);
+                                fetchLikedSongs();
+                                fetchPlaylistSongs();
+                              }}
+                              className="text-[2rem] m-2 text-[#ff2d2d] "
+                            />
+                          ) : (
+                            <FaHeart
+                              onClick={() => {
+                                handleLiked(
+                                  song?.file?.asset?.url,
+                                  song?.audioimg?.asset?.url,
+                                  song?.description,
+                                  song?.title
+                                );
+                                fetchLikedSongs();
+                                fetchPlaylistSongs();
+                              }}
+                              className="text-[2rem] m-2 text-[#efe9e9] z-40"
+                            />
+                          )}
+                          {isSongInPlaylist ? (
+                            <CgPlayListCheck
+                              onClick={() => {
+                                handeleRemoveSong(index);
+                                fetchLikedSongs();
+                                fetchPlaylistSongs();
+                              }}
+                              className="text-[2rem] m-2 text-[#646464] cursor-pointer z-40"
+                            />
+                          ) : (
+                            <CgPlayListAdd
+                              className="text-[2rem] m-2 text-[#646464] z-40"
+                              onClick={() => {
+                                handlePlaylist(
+                                  song?.file?.asset?.url,
+                                  song.audioimg.asset.url,
+                                  song.description,
+                                  song.title
+                                );
+                                fetchLikedSongs();
+                                fetchPlaylistSongs();
+                              }}
+                            />
+                          )}
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <p className="pl-2 pb-2 text-lg text-[#b3b3b3] mt-2">
-                          {song.title}
-                        </p>
-                        <button
-                          className="downloadButton mr-1 my-2"
-                          onClick={() =>
-                            handleDownload(
-                              song?.file?.asset?.url,
-                              song.title,
-                              index
-                            )
-                          }
-                        >
-                          {downloadStatus[index] ? "Downloading.." : "Download"}
-                        </button>
-                      </div>
-                      <div className="flex justify-between">
-                        
-                        {/* <CgPlayListCheck className="text-[3rem] m-2 text-[#646464]" /> */}
-                        <CgPlayListAdd
-                          className="text-[3rem] m-2 text-[#646464]"
-                          onClick={() =>
-                            handlePlaylist(
-                              song?.file?.asset?.url,
-                              song.audioimg.asset.url,
-                              song.description,
-                              song.title,
-                              index
-                            )
-                          }
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>

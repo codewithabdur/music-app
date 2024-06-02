@@ -33,11 +33,21 @@ const Playlist = () => {
   const [music, setMusic] = useState(1);
   const [audioPlayer, setAudioPlayer] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
+  const [showMore, setShowMore] = useState(
+    Array(playlistSongs.length).fill(false)
+  );
   const navigate = useNavigate();
 
   const playPause = () => {
     setIsPlaying((prevIsPlaying) => !prevIsPlaying);
   };
+   const toggleShowMore = (songIndex) => {
+     setShowMore((prevShowMore) => {
+       const updatedShowMore = [...prevShowMore];
+       updatedShowMore[songIndex] = !updatedShowMore[songIndex];
+       return updatedShowMore;
+     });
+   };
 
    useEffect(() => {
      if (audioPlayer) {
@@ -318,14 +328,35 @@ const Playlist = () => {
                       <div className="relative overflow-hidden">
                         <img
                           src={song.image}
-                          alt={song.title ? song.title : "image"}
+                          alt={song.description ? song.description : "image"}
                           className="rounded-t-lg object-cover text-white"
                         />
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between flex-col">
                         <p className="pl-2 pb-2 text-lg text-[#b3b3b3] mt-2">
-                          {song.title}
+                          {song.description}
                         </p>
+                        {showMore[songIndex] ? (
+                          <p className="pl-2 py-2 text-lg text-[#b3b3b3] mt-2">
+                            {song.title}....
+                            <a
+                              onClick={() => toggleShowMore(songIndex)}
+                              className="text-[#6c11b6]"
+                            >
+                              Show Less
+                            </a>
+                          </p>
+                        ) : (
+                          <p className="pl-2 py-2 text-lg text-[#b3b3b3] mt-2">
+                            {song.title.substring(0, 100)}....
+                            <a
+                              className="text-[#6c11b6]"
+                              onClick={() => toggleShowMore(songIndex)}
+                            >
+                              Show More
+                            </a>
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))}

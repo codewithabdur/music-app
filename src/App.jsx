@@ -15,7 +15,7 @@ const App = () => {
       ),
     },
     {
-      path: "profile",
+      path: "profile/:uid",
       element: <Profile />,
     },
     {
