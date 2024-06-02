@@ -80,6 +80,7 @@ useEffect(() => {
                 src={userData?.image}
                 alt="Profile Image"
                 className="w-24 h-24 rounded-full object-cover"
+                loading="lazy"
               />
             </div>
             <h1 className="text-2xl font-bold mb-2 text-center">

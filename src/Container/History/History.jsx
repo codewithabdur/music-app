@@ -34,6 +34,17 @@ const History = () => {
   const [audioPlayer, setAudioPlayer] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
   const navigate = useNavigate()
+  const [showMore, setShowMore] = useState(
+    Array(historySongs.length).fill(false)
+  );
+
+     const toggleShowMore = (songIndex) => {
+       setShowMore((prevShowMore) => {
+         const updatedShowMore = [...prevShowMore];
+         updatedShowMore[songIndex] = !updatedShowMore[songIndex];
+         return updatedShowMore;
+       });
+     };
 
   const playPause = () => {
     setIsPlaying((prevIsPlaying) => !prevIsPlaying);
@@ -233,7 +244,7 @@ const History = () => {
 
   if (loading) {
     return (
-      <div className="h-screen bg-[#111] w-full flex justify-center items-center">
+      <div className="h-screen bg-[#000] w-full flex justify-center items-center">
         <DNA
           visible={true}
           height="150"
@@ -260,8 +271,9 @@ const History = () => {
               <ul className="flex flex-col justify-evenly min-h-[70vh]">
                 <div
                   className="flex items-center"
-                  onClick={() => {navigate(`/`)
-                    checkPlayer()
+                  onClick={() => {
+                    navigate(`/`);
+                    checkPlayer();
                   }}
                 >
                   <span className="mr-1">
@@ -271,8 +283,9 @@ const History = () => {
                 </div>
                 <div
                   className="flex items-center mt-4"
-                  onClick={() => {navigate(`/history`)
-                    checkPlayer()
+                  onClick={() => {
+                    navigate(`/history`);
+                    checkPlayer();
                   }}
                 >
                   <span className="mr-1">
@@ -282,8 +295,21 @@ const History = () => {
                 </div>
                 <div
                   className="flex items-center"
-                  onClick={() => {navigate(`/playlistpage`)
-                    checkPlayer()
+                  onClick={() => {
+                    navigate(`/likedpage`);
+                    checkPlayer();
+                  }}
+                >
+                  <span className="mr-1">
+                    <FaHeart />
+                  </span>
+                  <li className="my-1 cursor-pointer">Liked</li>
+                </div>
+                <div
+                  className="flex items-center"
+                  onClick={() => {
+                    navigate(`/playlistpage`);
+                    checkPlayer();
                   }}
                 >
                   <span className="mr-1">
@@ -318,12 +344,34 @@ const History = () => {
                           src={song.image}
                           alt={song.fileName ? song.fileName : "image"}
                           className="rounded-t-lg object-cover text-white"
+                          loading="lazy"
                         />
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex flex-col justify-between">
                         <p className="pl-2 pb-2 text-lg text-[#b3b3b3] mt-2">
                           {song.fileName}
                         </p>
+                        {showMore[songIndex] ? (
+                          <p className="pl-2 py-2 text-lg text-[#b3b3b3] mt-2">
+                            {song.desc}....
+                            <a
+                              onClick={() => toggleShowMore(songIndex)}
+                              className="text-[#6c11b6]"
+                            >
+                              Show Less
+                            </a>
+                          </p>
+                        ) : (
+                          <p className="pl-2 py-2 text-lg text-[#b3b3b3] mt-2">
+                            {song.desc.substring(0, 100)}....
+                            <a
+                              className="text-[#6c11b6]"
+                              onClick={() => toggleShowMore(songIndex)}
+                            >
+                              Show More
+                            </a>
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -341,6 +389,7 @@ const History = () => {
               historySongs[index] ? historySongs[index]?.title : "song image"
             }
             className="h-[2rem] object-cover text-white"
+            loading="lazy"
           />
           <SkipPrevious
             style={{ fontSize: 40, color: "#fff" }}

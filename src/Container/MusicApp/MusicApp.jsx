@@ -48,7 +48,8 @@ const MusicApp = () => {
   const [songSaved, setSongSaved] = useState(null);
   const [songExist, setSongExist] = useState(null);
   const [songRemoved, setSongRemoved] = useState(null);
-  const [songNotRemoved, setSongNotRemoved] = useState(null);
+  const [songNotRemoved, setSongNotRemoved] = useState(null)
+  const isLogin = localStorage.getItem("uid")!=null
   const [downloadStatus, setDownloadStatus] = useState(
     Array(songs.length).fill(false)
   );
@@ -1035,6 +1036,7 @@ const MusicApp = () => {
                             src={song.audioimg.asset.url}
                             alt={song.title ? song.title : "image"}
                             className="rounded-t-lg object-cover text-white"
+                            loading="lazy"
                           />
                         </div>
                         <div className="flex justify-between">
@@ -1062,71 +1064,107 @@ const MusicApp = () => {
                               </a>
                             </p>
                           )} */}
-                          <button
-                            className="downloadButton mr-1 my-2"
-                            onClick={() =>
-                              handleDownload(
-                                song?.file?.asset?.url,
-                                song.title,
-                                index
-                              )
-                            }
-                          >
-                            {downloadStatus[index]
-                              ? "Downloading.."
-                              : "Download"}
-                          </button>
-                        </div>
-                        <div className="flex justify-between z-10">
-                          {isSongInLiked ? (
-                            <FaHeart
-                              onClick={() => {
-                                handeleRemoveLikedSong(index);
-                                fetchLikedSongs();
-                                fetchPlaylistSongs();
-                              }}
-                              className="text-[2rem] m-2 text-[#ff2d2d] "
-                            />
-                          ) : (
-                            <FaHeart
-                              onClick={() => {
-                                handleLiked(
+                          {isLogin ? (
+                            <button
+                              className="downloadButton mr-1 my-2"
+                              onClick={() =>
+                                handleDownload(
                                   song?.file?.asset?.url,
-                                  song?.audioimg?.asset?.url,
-                                  song?.description,
-                                  song?.title
-                                );
-                                fetchLikedSongs();
-                                fetchPlaylistSongs();
-                              }}
-                              className="text-[2rem] m-2 text-[#efe9e9] z-40"
-                            />
-                          )}
-                          {isSongInPlaylist ? (
-                            <CgPlayListCheck
-                              onClick={() => {
-                                handeleRemoveSong(index);
-                                fetchLikedSongs();
-                                fetchPlaylistSongs();
-                              }}
-                              className="text-[2rem] m-2 text-[#646464] cursor-pointer z-40"
-                            />
+                                  song.title,
+                                  index
+                                )
+                              }
+                            >
+                              {downloadStatus[index]
+                                ? "Downloading.."
+                                : "Download"}
+                            </button>
                           ) : (
-                            <CgPlayListAdd
-                              className="text-[2rem] m-2 text-[#646464] z-40"
-                              onClick={() => {
-                                handlePlaylist(
-                                  song?.file?.asset?.url,
-                                  song.audioimg.asset.url,
-                                  song.description,
-                                  song.title
-                                );
-                                fetchLikedSongs();
-                                fetchPlaylistSongs();
-                              }}
-                            />
+                            <button
+                              className="downloadButton mr-1 my-2"
+                              onClick={() => navigate(`/login`)}
+                            >
+                              Download
+                            </button>
                           )}
                         </div>
+                        {isLogin ? (
+                          <div className="flex justify-between z-10">
+                            {isSongInLiked ? (
+                              <FaHeart
+                                onClick={() => {
+                                  handeleRemoveLikedSong(index);
+                                  fetchLikedSongs();
+                                  fetchPlaylistSongs();
+                                }}
+                                className="text-[2rem] m-2 text-[#ff2d2d] "
+                              />
+                            ) : (
+                              <FaHeart
+                                onClick={() => {
+                                  handleLiked(
+                                    song?.file?.asset?.url,
+                                    song?.audioimg?.asset?.url,
+                                    song?.description,
+                                    song?.title
+                                  );
+                                  fetchLikedSongs();
+                                  fetchPlaylistSongs();
+                                }}
+                                className="text-[2rem] m-2 text-[#efe9e9] z-40"
+                              />
+                            )}
+                            {isSongInPlaylist ? (
+                              <CgPlayListCheck
+                                onClick={() => {
+                                  handeleRemoveSong(index);
+                                  fetchLikedSongs();
+                                  fetchPlaylistSongs();
+                                }}
+                                className="text-[2rem] m-2 text-[#646464] cursor-pointer z-40"
+                              />
+                            ) : (
+                              <CgPlayListAdd
+                                className="text-[2rem] m-2 text-[#646464] z-40"
+                                onClick={() => {
+                                  handlePlaylist(
+                                    song?.file?.asset?.url,
+                                    song.audioimg.asset.url,
+                                    song.description,
+                                    song.title
+                                  );
+                                  fetchLikedSongs();
+                                  fetchPlaylistSongs();
+                                }}
+                              />
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex justify-between z-10">
+                            {isSongInLiked ? (
+                              <FaHeart
+                                onClick={() => navigate(`/login`)}
+                                className="text-[2rem] m-2 text-[#ff2d2d] "
+                              />
+                            ) : (
+                              <FaHeart
+                                onClick={() => navigate(`/login`)}
+                                className="text-[2rem] m-2 text-[#efe9e9] z-40"
+                              />
+                            )}
+                            {isSongInPlaylist ? (
+                              <CgPlayListCheck
+                                onClick={() => navigate(`/login`)}
+                                className="text-[2rem] m-2 text-[#646464] cursor-pointer z-40"
+                              />
+                            ) : (
+                              <CgPlayListAdd
+                                className="text-[2rem] m-2 text-[#646464] z-40"
+                                onClick={() => navigate(`/login`)}
+                              />
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1145,6 +1183,7 @@ const MusicApp = () => {
                   : "song image"
               }
               className="h-[2rem] object-cover text-white"
+              loading="lazy"
             />
             <SkipPrevious
               style={{ fontSize: 40, color: "#fff" }}

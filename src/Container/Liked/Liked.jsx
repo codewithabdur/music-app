@@ -22,49 +22,49 @@ import { IoMdMusicalNote } from "react-icons/io";
 import { DNA } from "react-loader-spinner";
 import { useNavigate } from "react-router-dom";
 
-const Playlist = () => {
+const Liked = () => {
   const [userData, setUserData] = useState(null);
-  const [playlistSongs, setPlaylistSong] = useState([]);
+  const [likedSongs, setlikedSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [index, setIndex] = useState(0); // Initialize index state
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1);
-  const [music, setMusic] = useState(1);
+  const [music, setMusic] = useState(0);
   const [audioPlayer, setAudioPlayer] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
-  const [showMore, setShowMore] = useState(
-    Array(playlistSongs.length).fill(false)
-  );
   const navigate = useNavigate();
+  const [showMore, setShowMore] = useState(
+    Array(likedSongs.length).fill(false)
+  );
+
+  const toggleShowMore = (songIndex) => {
+    setShowMore((prevShowMore) => {
+      const updatedShowMore = [...prevShowMore];
+      updatedShowMore[songIndex] = !updatedShowMore[songIndex];
+      return updatedShowMore;
+    });
+  };
 
   const playPause = () => {
     setIsPlaying((prevIsPlaying) => !prevIsPlaying);
   };
-   const toggleShowMore = (songIndex) => {
-     setShowMore((prevShowMore) => {
-       const updatedShowMore = [...prevShowMore];
-       updatedShowMore[songIndex] = !updatedShowMore[songIndex];
-       return updatedShowMore;
-     });
-   };
-
-   useEffect(() => {
-     if (audioPlayer) {
-       audioPlayer.addEventListener("timeupdate", handleTimeUpdate);
-
-       return () => {
-         audioPlayer.removeEventListener("timeupdate", handleTimeUpdate);
-       };
-     }
-   }, [audioPlayer]);
-
-   const handleTimeUpdate = () => {
-     setCurrentTime(audioPlayer.currentTime);
-   };
 
   useEffect(() => {
-    const fetchUserDataAndHistory = async () => {
+    if (audioPlayer) {
+      audioPlayer.addEventListener("timeupdate", handleTimeUpdate);
+
+      return () => {
+        audioPlayer.removeEventListener("timeupdate", handleTimeUpdate);
+      };
+    }
+  }, [audioPlayer]);
+
+  const handleTimeUpdate = () => {
+    setCurrentTime(audioPlayer.currentTime);
+  };
+  useEffect(() => {
+    const fetchUserDataAndliked = async () => {
       try {
         const userEmail = localStorage.getItem("user");
 
@@ -87,15 +87,15 @@ const Playlist = () => {
         const data = querySnapshot.docs[0].data();
         setUserData(data);
 
-        const historyDocRef = doc(db, "playlist", data.uid);
-        const playlistSongsDocSnapshot = await getDoc(historyDocRef);
+        const likedDocRef = doc(db, "liked", data.uid);
+        const likedSongsDocSnapshot = await getDoc(likedDocRef);
 
-        if (playlistSongsDocSnapshot.exists()) {
-          const playlistSongsData = playlistSongsDocSnapshot.data().songs || [];
-          setPlaylistSong(playlistSongsData);
-          localStorage.setItem("playlist", JSON.stringify(playlistSongsData));
+        if (likedSongsDocSnapshot.exists()) {
+          const likedSongsData = likedSongsDocSnapshot.data().songs || [];
+          setlikedSongs(likedSongsData);
+          localStorage.setItem("liked", JSON.stringify(likedSongsData));
         } else {
-          setError("No history found for this user");
+          setError("No liked found for this user");
         }
       } catch (err) {
         setError("An error occurred while fetching data: " + err.message);
@@ -104,7 +104,7 @@ const Playlist = () => {
       }
     };
 
-    fetchUserDataAndHistory();
+    fetchUserDataAndliked();
   }, []);
 
   const handleVolumeChange = (event) => {
@@ -125,7 +125,6 @@ const Playlist = () => {
     }
   }, [audioPlayer, isPlaying]);
 
-
   const handleMusicChange = (event) => {
     const value = parseFloat(event.target.value); // Parse float instead of int
     if (
@@ -141,12 +140,12 @@ const Playlist = () => {
     }
   };
 
-  const playSong = (url, title, image, index) => {
+  const playSong = (url, fileName, image, index) => {
     // Pause the previous audio player if it exists
     if (audioPlayer) {
       audioPlayer.pause();
     }
-    window.document.title = `CodeWithAbdur || MelodicVerse - ${title} Song Your Personalized Music Experience`;
+    window.document.title = `CodeWithAbdur || MelodicVerse - ${fileName} Song Your Personalized Music Experience`;
 
     // Set up the new audio player with the correct URL
     const newAudioPlayer = new Audio(url);
@@ -159,12 +158,12 @@ const Playlist = () => {
   };
 
   const handleNext = () => {
-    if (index < playlistSongs.length - 1) {
+    if (index < likedSongs.length - 1) {
       setIndex(index + 1);
       playSong(
-        playlistSongs[index + 1]?.file,
-        playlistSongs[index + 1]?.title,
-        playlistSongs[index + 1]?.image,
+        likedSongs[index + 1]?.file,
+        likedSongs[index + 1]?.fileName,
+        likedSongs[index + 1]?.image,
         index + 1
       );
       setMusic(0);
@@ -172,9 +171,9 @@ const Playlist = () => {
       // Optionally, you can loop back to the beginning when reaching the end
       setIndex(0);
       playSong(
-        playlistSongs[0]?.file,
-        playlistSongs[0]?.title,
-        playlistSongs[0]?.image,
+        likedSongs[0]?.file,
+        likedSongs[0]?.fileName,
+        likedSongs[0]?.image,
         0
       );
       setMusic(0);
@@ -185,20 +184,20 @@ const Playlist = () => {
     if (index > 0) {
       setIndex(index - 1);
       playSong(
-        playlistSongs[index - 1]?.file,
-        playlistSongs[index - 1]?.title,
-        playlistSongs[index - 1]?.image,
+        likedSongs[index - 1]?.file,
+        likedSongs[index - 1]?.fileName,
+        likedSongs[index - 1]?.image,
         index - 1
       );
       setMusic(0);
     } else {
       // Optionally, you can go to the last song when pressing previous on the first song
-      setIndex(playlistSongs.length - 1);
+      setIndex(likedSongs.length - 1);
       playSong(
-        playlistSongs[playlistSongs.length - 1]?.file,
-        playlistSongs[playlistSongs.length - 1]?.title,
-        playlistSongs[playlistSongs.length - 1]?.image,
-        playlistSongs.length - 1
+        likedSongs[likedSongs.length - 1]?.file,
+        likedSongs[likedSongs.length - 1]?.fileName,
+        likedSongs[likedSongs.length - 1]?.image,
+        likedSongs.length - 1
       );
       setMusic(0);
     }
@@ -208,41 +207,38 @@ const Playlist = () => {
       audioPlayer.pause();
     }
   };
-    useEffect(() => {
-      if (audioPlayer) {
-        const handleLoadedMetadata = () => {
-          audioPlayer.currentTime = music * audioPlayer.duration;
-        };
+  useEffect(() => {
+    if (audioPlayer) {
+      const handleLoadedMetadata = () => {
+        audioPlayer.currentTime = music * audioPlayer.duration;
+      };
 
-        const handleEnded = () => {
-          if (audioPlayer) {
-            audioPlayer.pause();
-          }
-          setAudioPlayer(
-            new Audio(playlistSongs[index + 1]?.file)
-          );
-          setIndex(index + 1);
-          setMusic(0);
-          setIsPlaying(false);
-          setVolume(audioPlayer ? audioPlayer.volume : volume);
-          playPause()
-        };
+      const handleEnded = () => {
+        if (audioPlayer) {
+          audioPlayer.pause();
+        }
+        console.log(likedSongs[index + 1]?.file);
+        setAudioPlayer(new Audio(likedSongs[index + 1]?.file));
+        setIndex(index + 1);
+        setMusic(0);
+        setIsPlaying(false);
+        setVolume(audioPlayer ? audioPlayer.volume : volume);
+        playPause();
+      };
 
-        audioPlayer.addEventListener("loadedmetadata", handleLoadedMetadata);
-        audioPlayer.addEventListener("ended", handleEnded);
+      audioPlayer.addEventListener("loadedmetadata", handleLoadedMetadata);
+      audioPlayer.addEventListener("ended", handleEnded);
 
-        return () => {
-          audioPlayer.removeEventListener(
-            "loadedmetadata",
-            handleLoadedMetadata
-          );
-          audioPlayer.removeEventListener("ended", handleEnded);
-        };
-      }
-    }, [audioPlayer, music]);
+      return () => {
+        audioPlayer.removeEventListener("loadedmetadata", handleLoadedMetadata);
+        audioPlayer.removeEventListener("ended", handleEnded);
+      };
+    }
+  }, [audioPlayer, music]);
+
   if (loading) {
     return (
-      <div className="h-screen bg-[#111] w-full flex justify-center items-center">
+      <div className="h-screen bg-[#000] w-full flex justify-center items-center">
         <DNA
           visible={true}
           height="150"
@@ -260,7 +256,7 @@ const Playlist = () => {
   }
 
   return (
-    <div className=" w-full bg-[#000]">
+    <div className=" w-full bg-[#111]">
       <div className="p-7 flex">
         <div className="sideBar md:w-[20vw] w-[30vw] ">
           <div className="flex flex-col justify-center items-center text-[#fff] text-[20px] font-bold">
@@ -299,7 +295,7 @@ const Playlist = () => {
                   }}
                 >
                   <span className="mr-1">
-                    <FaHeart />
+                    <MdPlaylistPlay />
                   </span>
                   <li className="my-1 cursor-pointer">Liked</li>
                 </div>
@@ -320,38 +316,38 @@ const Playlist = () => {
           </div>
         </div>
         <div className="w-[70vw] md:w-[80vw]">
-          {playlistSongs.length > 0 && (
+          {likedSongs.length > 0 && (
             <div className="heroSection w-[70vw] md:w-[80vw] h-[70vh] overflow-scroll">
               <div className="md:w-[75vw] w-[65vw] mx-auto h-full">
                 <div className="grid grid-cols-1  sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto ">
-                  {playlistSongs.map((song, songIndex) => (
+                  {likedSongs.map((song, songIndex) => (
                     <div
                       onClick={() => {
                         playSong(
-                          playlistSongs[songIndex]?.file,
-                          playlistSongs[songIndex]?.title,
-                          playlistSongs[songIndex]?.image,
+                          likedSongs[songIndex]?.file,
+                          likedSongs[songIndex]?.description,
+                          likedSongs[songIndex]?.image,
                           songIndex
                         );
                       }}
-                      key={song.file}
+                      key={song.description}
                       className=" rounded-lg cursor-pointer select-none shadow-lg bg-white boxShadow border-black border hover:bg-[#5a0a72] transition-all duration-300"
                     >
                       <div className="relative overflow-hidden">
                         <img
                           src={song.image}
-                          alt={song.description ? song.description : "image"}
+                          alt={song.title ? song.title : "image"}
                           className="rounded-t-lg object-cover text-white"
                           loading="lazy"
                         />
                       </div>
-                      <div className="flex justify-between flex-col">
+                      <div className="flex flex-col justify-between">
                         <p className="pl-2 pb-2 text-lg text-[#b3b3b3] mt-2">
-                          {song.description}
+                          {song.title}
                         </p>
                         {showMore[songIndex] ? (
                           <p className="pl-2 py-2 text-lg text-[#b3b3b3] mt-2">
-                            {song.title}....
+                            {song.description}....
                             <a
                               onClick={() => toggleShowMore(songIndex)}
                               className="text-[#6c11b6]"
@@ -361,7 +357,7 @@ const Playlist = () => {
                           </p>
                         ) : (
                           <p className="pl-2 py-2 text-lg text-[#b3b3b3] mt-2">
-                            {song.title.substring(0, 100)}....
+                            {song?.description.substring(0, 100)}....
                             <a
                               className="text-[#6c11b6]"
                               onClick={() => toggleShowMore(songIndex)}
@@ -382,10 +378,8 @@ const Playlist = () => {
       <div className="md:h-[16.6vh] fixed bottom-0 right-0 left-0">
         <div className="flex items-center justify-around h-[16.6vh] my-auto ">
           <img
-            src={playlistSongs[index]?.image}
-            alt={
-              playlistSongs[index] ? playlistSongs[index]?.title : "song image"
-            }
+            src={likedSongs[index]?.image}
+            alt={likedSongs[index] ? likedSongs[index]?.title : "song image"}
             className="h-[2rem] object-cover text-white"
             loading="lazy"
           />
@@ -442,4 +436,4 @@ const Playlist = () => {
   );
 };
 
-export default Playlist;
+export default Liked;

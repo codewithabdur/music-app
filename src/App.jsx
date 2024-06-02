@@ -1,6 +1,6 @@
 import React from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import {  Error, History, Playlist } from './Container'
+import {  Error, History, Liked, Playlist } from './Container'
 import HomePage from './HomePage/HomePage'
 import { Login, Phone, Profile, Register, NavBar } from './Components'
 
@@ -29,6 +29,15 @@ const App = () => {
     {
       path: "register",
       element: <Register />,
+    },
+    {
+      path: "likedpage",
+      element: (
+        <>
+        <NavBar />
+          <Liked />
+        </>
+      ),
     },
     {
       path: "*",

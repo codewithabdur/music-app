@@ -72,11 +72,28 @@ const NavBar = () => {
       <header className="text-[#fff] body-font bg-[#000] ">
         <div className="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center w-[80%]">
           <a className="flex title-font font-medium items-center mb-4 md:mb-0">
-            <img src={navItem?.logo?.asset?.url} alt="Logo" className="w-[15rem]" />
+            <img
+              src={navItem?.logo?.asset?.url}
+              alt="Logo"
+              className="w-[15rem]"
+              loading="lazy"
+            />
           </a>
           <nav className="md:ml-auto flex flex-wrap items-center text-base justify-center uppercase transition-all duration-300">
-            <a className="mr-5 hover:text-[#2bc5b4] cursor-pointer" onClick={() => {{isLoggedIn ? navigate(`/profile/${uid}`) : navigate(`/login`)}}}>
-              <img src={Profile} alt="profile" className="rounded-[50%] h-[5rem] w-[5rem] object-cover" />
+            <a
+              className="mr-5 hover:text-[#2bc5b4] cursor-pointer"
+              onClick={() => {
+                {
+                  isLoggedIn ? navigate(`/profile/${uid}`) : navigate(`/login`);
+                }
+              }}
+            >
+              <img
+                src={Profile}
+                alt="profile"
+                className="rounded-[50%] h-[5rem] w-[5rem] object-cover"
+                loading="lazy"
+              />
             </a>
           </nav>
         </div>
