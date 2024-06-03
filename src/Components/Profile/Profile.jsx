@@ -12,6 +12,7 @@ import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
 import "./Profile.css";
 import { useNavigate } from "react-router-dom";
 import { DNA } from "react-loader-spinner";
+import { signOut } from "firebase/auth";
 
 const Profile = () => {
   const [userData, setUserData] = useState([]);
@@ -55,8 +56,21 @@ useEffect(() => {
 
   const logout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("uid");
     localStorage.removeItem("verifiedPhone");
-    navigate(`/`);
+    localStorage.removeItem("liked");
+    localStorage.removeItem("playlist");
+    localStorage.removeItem("history");
+    // Sign out the user
+    signOut(auth)
+      .then(() => {
+        // Navigate to home page after successful sign out
+        navigate(`/`);
+      })
+      .catch((error) => {
+        // Handle any errors during sign out
+        console.error("Error signing out: ", error);
+      });
   };
 
   return (
