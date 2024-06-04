@@ -9,7 +9,7 @@
 }
 
 .logOutButton span {
-  color: gray;
+  color: #fff;
   position: relative;
   transition: 500ms;
   transition-delay: 500ms;
@@ -72,11 +72,13 @@
 }
 
 .logOutButton:hover {
-  color: #000;
+  color: #000000;
+  font-weight: 800;
 }
 
 .logOutButton:hover span {
-  color: #000;
+  color: #000000;
+  font-weight: 800;
 }
 
 .logOutButton:hover:before {

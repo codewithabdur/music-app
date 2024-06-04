@@ -8,7 +8,7 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
-import { FaHeart, FaHistory, FaHome } from "react-icons/fa";
+import { FaHeart, FaHistory, FaHome, FaVolumeMute } from "react-icons/fa";
 import { CgPlayListAdd } from "react-icons/cg";
 import {
   Pause,
@@ -21,6 +21,8 @@ import { MdPlaylistPlay } from "react-icons/md";
 import { IoMdMusicalNote } from "react-icons/io";
 import { DNA } from "react-loader-spinner";
 import { useNavigate } from "react-router-dom";
+import Disc from "../../assets/disk.png";
+import "./Playlist.css"
 
 const Playlist = () => {
   const [userData, setUserData] = useState(null);
@@ -37,6 +39,16 @@ const Playlist = () => {
     Array(playlistSongs.length).fill(false)
   );
   const navigate = useNavigate();
+   const [muteAudio, setMuteAudio] = useState(true);
+
+   const mute = () => {
+     setMuteAudio(!muteAudio);
+     if (muteAudio) {
+       audioPlayer.volume = 0;
+     } else {
+       audioPlayer.volume = 1;
+     }
+   };
 
   const playPause = () => {
     setIsPlaying((prevIsPlaying) => !prevIsPlaying);
@@ -262,7 +274,7 @@ const Playlist = () => {
   return (
     <div className=" w-full bg-[#000]">
       <div className="p-7 flex">
-        <div className="sideBar md:w-[20vw] w-[30vw] ">
+        <div className="sideBar md:w-[20vw] w-[40vw] ">
           <div className="flex flex-col justify-center items-center text-[#fff] text-[20px] font-bold">
             <div className="my-4 p-2">
               <span className=" text-[#a7a6a6]">Library</span>
@@ -379,14 +391,18 @@ const Playlist = () => {
           )}
         </div>
       </div>
-      <div className="md:h-[16.6vh] fixed bottom-0 right-0 left-0">
+      <div className="md:h-[16.6vh] fixed bottom-0 bg-[#000] right-0 left-0 z-30">
         <div className="flex items-center justify-around h-[16.6vh] my-auto ">
           <img
-            src={playlistSongs[index]?.image}
+            src={
+              playlistSongs[index]?.image ? playlistSongs[index]?.image : Disc
+            }
             alt={
               playlistSongs[index] ? playlistSongs[index]?.title : "song image"
             }
-            className="h-[2rem] object-cover text-white"
+            className={`h-[2rem] object-cover rounded-[50%] ${
+              isPlaying ? "moveCircle" : ""
+            } text-white`}
             loading="lazy"
           />
           <SkipPrevious
@@ -407,8 +423,18 @@ const Playlist = () => {
             onClick={handleNext}
             className="cursor-pointer"
           />
-          <div>
-            <VolumeUp style={{ fontSize: 40, color: "#fff" }} />
+          <div className="flex">
+            {muteAudio ? (
+              <VolumeUp
+                style={{ fontSize: 40, color: "#fff", cursor: "pointer" }}
+                onClick={mute}
+              />
+            ) : (
+              <FaVolumeMute
+                className="text-[0px] text-[#fff] cursor-pointer"
+                onClick={mute}
+              />
+            )}
             <input
               type="range"
               min="0"

@@ -47,3 +47,13 @@
 }
 
 
+.moveCircle {
+  display: inline-block;
+  animation: movecircle 2s infinite linear;
+  /* filter: drop-shadow(30px 10px 4px #44d5dd); */
+}
+
+@keyframes movecircle {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

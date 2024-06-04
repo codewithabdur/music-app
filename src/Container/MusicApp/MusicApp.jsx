@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaHistory } from "react-icons/fa";
+import { FaHistory, FaVolumeMute } from "react-icons/fa";
 import { IoMdMusicalNote } from "react-icons/io";
 import { RiAlbumFill } from "react-icons/ri";
 import { MdPlaylistPlay } from "react-icons/md";
@@ -18,6 +18,7 @@ import { FaHeart } from "react-icons/fa";
 import { CgPlayListAdd } from "react-icons/cg";
 import { CgPlayListCheck } from "react-icons/cg";
 import { auth, db, storage } from "../../lib/firebase";
+import Disc from "../../assets/disk.png"
 import {
   collection,
   query,
@@ -49,7 +50,7 @@ const MusicApp = () => {
   const [songExist, setSongExist] = useState(null);
   const [songRemoved, setSongRemoved] = useState(null);
   const [songNotRemoved, setSongNotRemoved] = useState(null)
-  const isLogin = localStorage.getItem("uid")!=null
+  const isLoggedIn = localStorage.getItem("uid")!=null
   const [downloadStatus, setDownloadStatus] = useState(
     Array(songs.length).fill(false)
   );
@@ -65,6 +66,18 @@ const MusicApp = () => {
     Array(songs.length).fill(false)
   );
   const navigate = useNavigate();
+  
+  const [muteAudio, setMuteAudio] = useState(true);
+
+  const mute = () =>{
+    setMuteAudio(!muteAudio)
+    if(muteAudio){
+      audioPlayer.volume = 0
+    }
+    else{
+      audioPlayer.volume = 1
+    }
+  }
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -301,6 +314,7 @@ const MusicApp = () => {
       audioPlayer.volume = newVolume;
     }
   };
+
 
   const handleMusicChange = (event) => {
     const value = parseFloat(event.target.value); // Parse float instead of int
@@ -926,7 +940,7 @@ const MusicApp = () => {
         )}
         {/* ------------------------Alert-------------------------- */}
         <div className="flex h-[70vh]">
-          <div className="sideBar md:w-[20vw] w-[30vw] ">
+          <div className="sideBar md:w-[20vw] w-[40vw]">
             <div className="flex flex-col md:justify-center justify-start md:items-center items-end text-[#fff] text-[20px] font-bold">
               <div className="mb-4 md:mt-8 p-2">
                 <span className=" text-[#a7a6a6]">Browse</span>
@@ -963,35 +977,91 @@ const MusicApp = () => {
                   </li>
                 </ul>
               </div>
-              <div className="md:my-4 p-2">
-                <span className=" text-[#a7a6a6]">Library</span>
-                <ul className="flex flex-col">
-                  <div
-                    className="flex items-center mt-4"
-                    onClick={() => {
-                      navigate(`/history`);
-                      checkPlayer();
-                    }}
-                  >
-                    <span className="mr-1">
-                      <FaHistory />
-                    </span>
-                    <li className="my-1 cursor-pointer">History</li>
-                  </div>
-                  <div
-                    className="flex items-center md:mb-0 mb-6"
-                    onClick={() => {
-                      navigate(`/playlistpage`);
-                      checkPlayer();
-                    }}
-                  >
-                    <span className="mr-1">
-                      <MdPlaylistPlay />
-                    </span>
-                    <li className="my-1 cursor-pointer">PlayList</li>
-                  </div>
-                </ul>
-              </div>
+              {isLoggedIn ? (
+                <div className="md:my-4 p-2">
+                  <span className=" text-[#a7a6a6]">Library</span>
+                  <ul className="flex flex-col">
+                    <div
+                      className="flex items-center mt-4"
+                      onClick={() => {
+                        navigate(`/history`);
+                        checkPlayer();
+                      }}
+                    >
+                      <span className="mr-1">
+                        <FaHistory />
+                      </span>
+                      <li className="my-1 cursor-pointer">History</li>
+                    </div>
+                    <div
+                      className="flex items-center"
+                      onClick={() => {
+                        navigate(`/likedpage`);
+                        checkPlayer();
+                      }}
+                    >
+                      <span className="mr-1">
+                        <FaHeart />
+                      </span>
+                      <li className="my-1 cursor-pointer">Liked</li>
+                    </div>
+                    <div
+                      className="flex items-center md:mb-0 mb-6"
+                      onClick={() => {
+                        navigate(`/playlistpage`);
+                        checkPlayer();
+                      }}
+                    >
+                      <span className="mr-1">
+                        <MdPlaylistPlay />
+                      </span>
+                      <li className="my-1 cursor-pointer">PlayList</li>
+                    </div>
+                  </ul>
+                </div>
+              ) : (
+                <div className="md:my-4 p-2">
+                  <span className=" text-[#a7a6a6]">Library</span>
+                  <ul className="flex flex-col">
+                    <div
+                      className="flex items-center mt-4"
+                      onClick={() => {
+                        navigate(`/login`);
+                        checkPlayer();
+                      }}
+                    >
+                      <span className="mr-1">
+                        <FaHistory />
+                      </span>
+                      <li className="my-1 cursor-pointer">History</li>
+                    </div>
+                    <div
+                      className="flex items-center"
+                      onClick={() => {
+                        navigate(`/login`);
+                        checkPlayer();
+                      }}
+                    >
+                      <span className="mr-1">
+                        <FaHeart />
+                      </span>
+                      <li className="my-1 cursor-pointer">Liked</li>
+                    </div>
+                    <div
+                      className="flex items-center md:mb-0 mb-6"
+                      onClick={() => {
+                        navigate(`/login`);
+                        checkPlayer();
+                      }}
+                    >
+                      <span className="mr-1">
+                        <MdPlaylistPlay />
+                      </span>
+                      <li className="my-1 cursor-pointer">PlayList</li>
+                    </div>
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
           {filteredSongs().length === 0 && (
@@ -1064,7 +1134,7 @@ const MusicApp = () => {
                               </a>
                             </p>
                           )} */}
-                          {isLogin ? (
+                          {isLoggedIn ? (
                             <button
                               className="downloadButton mr-1 my-2"
                               onClick={() =>
@@ -1088,7 +1158,7 @@ const MusicApp = () => {
                             </button>
                           )}
                         </div>
-                        {isLogin ? (
+                        {isLoggedIn ? (
                           <div className="flex justify-between z-10">
                             {isSongInLiked ? (
                               <FaHeart
@@ -1173,16 +1243,22 @@ const MusicApp = () => {
             </div>
           )}
         </div>
-        <div className="md:h-[16.6vh] fixed bottom-0 right-0 left-0">
+        <div className="md:h-[16.6vh] fixed bg-[#000] bottom-0 right-0 left-0 z-30">
           <div className="flex items-center justify-around h-[16.6vh] my-auto ">
             <img
-              src={filteredSongs()[currentSongIndex]?.audioimg?.asset?.url}
+              src={
+                filteredSongs()[currentSongIndex]?.audioimg?.asset?.url
+                  ? filteredSongs()[currentSongIndex]?.audioimg?.asset?.url
+                  : Disc
+              }
               alt={
                 filteredSongs()[currentSongIndex]
                   ? filteredSongs()[currentSongIndex]?.title
                   : "song image"
               }
-              className="h-[2rem] object-cover text-white"
+              className={`h-[2rem] object-cover rounded-[50%] ${
+                isPlaying ? "moveCircle" : ""
+              } text-white`}
               loading="lazy"
             />
             <SkipPrevious
@@ -1215,8 +1291,9 @@ const MusicApp = () => {
               }
               className="cursor-pointer"
             />
-            <div>
-              <VolumeUp style={{ fontSize: 40, color: "#fff" }} />
+            <div className="flex">
+              {muteAudio ? (<VolumeUp style={{ fontSize: 40, color: "#fff", cursor: "pointer" }} onClick={mute} />):(
+              <FaVolumeMute className="text-[30px] text-[#fff] cursor-pointer" onClick={mute} />)}
               <input
                 type="range"
                 min="0"
