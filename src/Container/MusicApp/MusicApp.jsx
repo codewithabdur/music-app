@@ -295,6 +295,7 @@ const MusicApp = () => {
 
   const playPause = () => {
     setIsPlaying((prevIsPlaying) => !prevIsPlaying);
+    // Pause the previous audio player if it exists
   };
 
   useEffect(() => {
@@ -357,7 +358,8 @@ const MusicApp = () => {
   // console.log(userData.uid);
 
   const checkHistory = async () => {
-    console.clear()
+    // console.clear();
+
     if (history.file && history.image && history.fileName && history.desc) {
       const historyDocRef = doc(db, "history", userData.uid);
 
@@ -367,6 +369,8 @@ const MusicApp = () => {
 
         if (historyDocSnapshot.exists()) {
           const existingHistory = historyDocSnapshot.data().history || [];
+          console.log("Existing history:", existingHistory);
+
           const isDuplicate = existingHistory.some(
             (item) =>
               item.file === historyData.file &&
@@ -391,9 +395,10 @@ const MusicApp = () => {
       }
     } else {
       console.log("Required history fields are missing:", { history });
-      console.clear()
+      // console.clear();
     }
   };
+
 
   const checkPlayer = () => {
     if (audioPlayer) {
@@ -695,249 +700,149 @@ const MusicApp = () => {
   return (
     <>
       <div>
-        {/* ------------------------Alert-------------------------- */}
+        {songSaved !== null && (
+        <div className="absolute top-1 right-1 z-10">
+          <div aria-live="assertive" className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6">
+            <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+              <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                <div className="p-4">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 w-0 flex-1 pt-0.5">
+                      <p className="text-sm font-medium text-gray-900">Successfully saved!</p>
+                      <p className="mt-1 text-sm text-gray-500">{songSaved}</p>
+                    </div>
+                    <div className="ml-4 flex flex-shrink-0">
+                      <button
+                        onClick={() => setSongSaved(null)}
+                        type="button"
+                        className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      >
+                        <span className="sr-only">Close</span>
+                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-        {songSaved == null ? (
-          ""
-        ) : (
-          <div className="absolute top-1 right-1 z-10">
-            <div
-              aria-live="assertive"
-              className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
-            >
-              <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
-                <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                  <div className="p-4">
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <svg
-                          className="h-6 w-6 text-green-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke-width="1.5"
-                          stroke="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
+      {songExist !== null && (
+        <div className="absolute top-1 right-1 z-10">
+          <div aria-live="assertive" className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6">
+            <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+              <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                <div className="p-4">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-6 w-6 text-[#ff0808]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 w-0 flex-1 pt-0.5">
+                      <p className="text-sm font-medium text-gray-900">Ooops!</p>
+                      <p className="mt-1 text-sm text-gray-500">{songExist}</p>
+                    </div>
+                    <div className="ml-4 flex flex-shrink-0">
+                      <button
+                        onClick={() => setSongExist(null)}
+                        type="button"
+                        className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      >
+                        <span className="sr-only">Close</span>
+                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                         </svg>
-                      </div>
-                      <div className="ml-3 w-0 flex-1 pt-0.5">
-                        <p className="text-sm font-medium text-gray-900">
-                          Successfully saved!
-                        </p>
-                        <p className="mt-1 text-sm text-gray-500">
-                          {songSaved ? songSaved : ""}
-                        </p>
-                      </div>
-                      <div className="ml-4 flex flex-shrink-0">
-                        <button
-                          onClick={setSongSaved(null)}
-                          type="button"
-                          className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                        >
-                          <span className="sr-only">Close</span>
-                          <svg
-                            className="h-5 w-5"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                          >
-                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                          </svg>
-                        </button>
-                      </div>
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {songExist == null ? (
-          ""
-        ) : (
-          <div className="absolute top-1 right-1 z-10">
-            <div
-              aria-live="assertive"
-              className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
-            >
-              <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
-                <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                  <div className="p-4">
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <svg
-                          className="h-6 w-6 text-[#ff0808]"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke-width="1.5"
-                          stroke="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
+      {songNotRemoved !== null && (
+        <div className="absolute top-1 right-1 z-10">
+          <div aria-live="assertive" className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6">
+            <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+              <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                <div className="p-4">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-6 w-6 text-[#ff0808]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 w-0 flex-1 pt-0.5">
+                      <p className="text-sm font-medium text-gray-900">Ooops!</p>
+                      <p className="mt-1 text-sm text-gray-500">{songNotRemoved}</p>
+                    </div>
+                    <div className="ml-4 flex flex-shrink-0">
+                      <button
+                        onClick={() => setSongNotRemoved(null)}
+                        type="button"
+                        className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      >
+                        <span className="sr-only">Close</span>
+                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                         </svg>
-                      </div>
-                      <div className="ml-3 w-0 flex-1 pt-0.5">
-                        <p className="text-sm font-medium text-gray-900">
-                          Ooops!
-                        </p>
-                        <p className="mt-1 text-sm text-gray-500">
-                          {songExist ? songExist : ""}
-                        </p>
-                      </div>
-                      <div className="ml-4 flex flex-shrink-0">
-                        <button
-                          onClick={setSongExist(null)}
-                          type="button"
-                          className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                        >
-                          <span className="sr-only">Close</span>
-                          <svg
-                            className="h-5 w-5"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                          >
-                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                          </svg>
-                        </button>
-                      </div>
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        )}
-        {songNotRemoved == null ? (
-          ""
-        ) : (
-          <div className="absolute top-1 right-1 z-10">
-            <div
-              aria-live="assertive"
-              className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
-            >
-              <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
-                <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                  <div className="p-4">
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <svg
-                          className="h-6 w-6 text-[#ff0808]"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke-width="1.5"
-                          stroke="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
+        </div>
+      )}
+
+      {songRemoved !== null && (
+        <div className="absolute top-1 right-1 z-10">
+          <div aria-live="assertive" className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6">
+            <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+              <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                <div className="p-4">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 w-0 flex-1 pt-0.5">
+                      <p className="text-sm font-medium text-gray-900">Successfully saved!</p>
+                      <p className="mt-1 text-sm text-gray-500">{songRemoved}</p>
+                    </div>
+                    <div className="ml-4 flex flex-shrink-0">
+                      <button
+                        onClick={() => setSongRemoved(null)}
+                        type="button"
+                        className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      >
+                        <span className="sr-only">Close</span>
+                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                         </svg>
-                      </div>
-                      <div className="ml-3 w-0 flex-1 pt-0.5">
-                        <p className="text-sm font-medium text-gray-900">
-                          Ooops!
-                        </p>
-                        <p className="mt-1 text-sm text-gray-500">
-                          {songNotRemoved ? songNotRemoved : ""}
-                        </p>
-                      </div>
-                      <div className="ml-4 flex flex-shrink-0">
-                        <button
-                          onClick={setSongNotRemoved(null)}
-                          type="button"
-                          className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                        >
-                          <span className="sr-only">Close</span>
-                          <svg
-                            className="h-5 w-5"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                          >
-                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                          </svg>
-                        </button>
-                      </div>
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        )}
-        {songSaved == null ? (
-          ""
-        ) : (
-          <div className="absolute top-1 right-1 z-10">
-            <div
-              aria-live="assertive"
-              className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
-            >
-              <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
-                <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                  <div className="p-4">
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <svg
-                          className="h-6 w-6 text-green-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke-width="1.5"
-                          stroke="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                      </div>
-                      <div className="ml-3 w-0 flex-1 pt-0.5">
-                        <p className="text-sm font-medium text-gray-900">
-                          Successfully saved!
-                        </p>
-                        <p className="mt-1 text-sm text-gray-500">
-                          {songRemoved ? songRemoved : ""}
-                        </p>
-                      </div>
-                      <div className="ml-4 flex flex-shrink-0">
-                        <button
-                          onClick={setSongRemoved(null)}
-                          type="button"
-                          className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                        >
-                          <span className="sr-only">Close</span>
-                          <svg
-                            className="h-5 w-5"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                          >
-                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
+      )}
         {/* ------------------------Alert-------------------------- */}
         <div className="flex h-[70vh]">
           <div className="sideBar md:w-[20vw] w-[40vw]">
@@ -946,31 +851,31 @@ const MusicApp = () => {
                 <span className=" text-[#a7a6a6]">Browse</span>
                 <ul className="flex flex-col">
                   <li
-                    className="my-1 cursor-pointer"
+                    className="my-1 cursor-pointer hover:text-[#623cca] transition-all"
                     onClick={() => setSelectedCategory("All")}
                   >
                     All
                   </li>
                   <li
-                    className="my-1 cursor-pointer"
+                    className="my-1 cursor-pointer hover:text-[#623cca] transition-all"
                     onClick={() => setSelectedCategory("New Release")}
                   >
                     New Release
                   </li>
                   <li
-                    className="my-1 cursor-pointer"
+                    className="my-1 cursor-pointer hover:text-[#623cca] transition-all"
                     onClick={() => setSelectedCategory("Top Playlist")}
                   >
                     Top Playlist
                   </li>
                   <li
-                    className="my-1 cursor-pointer"
+                    className="my-1 cursor-pointer hover:text-[#623cca] transition-all"
                     onClick={() => setSelectedCategory("Old Playlist")}
                   >
                     Old PlayList
                   </li>
                   <li
-                    className="my-1 cursor-pointer"
+                    className="my-1 cursor-pointer hover:text-[#623cca] transition-all"
                     onClick={() => setSelectedCategory("Dance Song")}
                   >
                     Dance Song
@@ -982,7 +887,7 @@ const MusicApp = () => {
                   <span className=" text-[#a7a6a6]">Library</span>
                   <ul className="flex flex-col">
                     <div
-                      className="flex items-center mt-4"
+                      className="flex items-center mt-4 hover:text-[#623cca] transition-all"
                       onClick={() => {
                         navigate(`/history`);
                         checkPlayer();
@@ -991,10 +896,10 @@ const MusicApp = () => {
                       <span className="mr-1">
                         <FaHistory />
                       </span>
-                      <li className="my-1 cursor-pointer">History</li>
+                      <li className="my-1 cursor-pointer ">History</li>
                     </div>
                     <div
-                      className="flex items-center"
+                      className="flex items-center hover:text-[#623cca] transition-all"
                       onClick={() => {
                         navigate(`/likedpage`);
                         checkPlayer();
@@ -1003,10 +908,10 @@ const MusicApp = () => {
                       <span className="mr-1">
                         <FaHeart />
                       </span>
-                      <li className="my-1 cursor-pointer">Liked</li>
+                      <li className="my-1 cursor-pointer ">Liked</li>
                     </div>
                     <div
-                      className="flex items-center md:mb-0 mb-6"
+                      className="flex items-center md:mb-0 mb-6 hover:text-[#623cca] transition-all"
                       onClick={() => {
                         navigate(`/playlistpage`);
                         checkPlayer();
@@ -1015,7 +920,7 @@ const MusicApp = () => {
                       <span className="mr-1">
                         <MdPlaylistPlay />
                       </span>
-                      <li className="my-1 cursor-pointer">PlayList</li>
+                      <li className="my-1 cursor-pointer ">PlayList</li>
                     </div>
                   </ul>
                 </div>
@@ -1105,12 +1010,12 @@ const MusicApp = () => {
                           <img
                             src={song.audioimg.asset.url}
                             alt={song.title ? song.title : "image"}
-                            className="rounded-t-lg object-cover text-white"
+                            className="rounded-t-lg object-cover h-[15rem] w-full text-white"
                             loading="lazy"
                           />
                         </div>
                         <div className="flex justify-between">
-                          <p className="pl-2 pb-2 text-lg text-[#b3b3b3] mt-2">
+                          <p className="pl-2 pb-2 text-[15px] font-bold text-[#b3b3b3] mt-2">
                             {song.title}
                           </p>
                           {/* {showMore[index] ? (
@@ -1243,7 +1148,7 @@ const MusicApp = () => {
             </div>
           )}
         </div>
-        <div className="md:h-[16.6vh] fixed bg-[#000] bottom-0 right-0 left-0 z-30">
+        <div className="md:h-[14vh] fixed bg-[#000] bottom-0 right-0 left-0 z-30">
           <div className="flex items-center justify-around h-[16.6vh] my-auto ">
             <img
               src={
@@ -1256,7 +1161,7 @@ const MusicApp = () => {
                   ? filteredSongs()[currentSongIndex]?.title
                   : "song image"
               }
-              className={`h-[2rem] object-cover rounded-[50%] ${
+              className={`h-[2rem] w-[2rem] object-cover rounded-[50%] ${
                 isPlaying ? "moveCircle" : ""
               } text-white`}
               loading="lazy"
@@ -1292,8 +1197,17 @@ const MusicApp = () => {
               className="cursor-pointer"
             />
             <div className="flex">
-              {muteAudio ? (<VolumeUp style={{ fontSize: 40, color: "#fff", cursor: "pointer" }} onClick={mute} />):(
-              <FaVolumeMute className="text-[30px] text-[#fff] cursor-pointer" onClick={mute} />)}
+              {muteAudio ? (
+                <VolumeUp
+                  style={{ fontSize: 40, color: "#fff", cursor: "pointer" }}
+                  onClick={mute}
+                />
+              ) : (
+                <FaVolumeMute
+                  className="text-[30px] text-[#fff] cursor-pointer"
+                  onClick={mute}
+                />
+              )}
               <input
                 type="range"
                 min="0"

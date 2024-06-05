@@ -42,6 +42,7 @@ export default defineType({
       options: {
         list: [
           {title: 'English', value: 'en'},
+          {title: 'Hindi', value: 'hi'},
           {title: 'French', value: 'fr'},
           {title: 'Spanish', value: 'es'},
           // Add more languages as needed

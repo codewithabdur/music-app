@@ -276,7 +276,7 @@ const Liked = () => {
               <span className=" text-[#a7a6a6]">Library</span>
               <ul className="flex flex-col justify-evenly min-h-[70vh]">
                 <div
-                  className="flex items-center"
+                  className="flex items-center hover:text-[#623cca] transition-all"
                   onClick={() => {
                     navigate(`/`);
                     checkPlayer();
@@ -300,7 +300,7 @@ const Liked = () => {
                   <li className="my-1 cursor-pointer">History</li>
                 </div>
                 <div
-                  className="flex items-center"
+                  className="flex items-center hover:text-[#623cca] transition-all"
                   onClick={() => {
                     navigate(`/likedpage`);
                     checkPlayer();
@@ -312,7 +312,7 @@ const Liked = () => {
                   <li className="my-1 cursor-pointer">Liked</li>
                 </div>
                 <div
-                  className="flex items-center"
+                  className="flex items-center hover:text-[#623cca] transition-all"
                   onClick={() => {
                     navigate(`/playlistpage`);
                     checkPlayer();
@@ -349,7 +349,7 @@ const Liked = () => {
                         <img
                           src={song.image}
                           alt={song.title ? song.title : "image"}
-                          className="rounded-t-lg object-cover text-white"
+                          className="rounded-t-lg object-cover h-[15rem] w-full text-white"
                           loading="lazy"
                         />
                       </div>
@@ -392,7 +392,7 @@ const Liked = () => {
           <img
             src={likedSongs[index]?.image ? likedSongs[index]?.image : Disc}
             alt={likedSongs[index] ? likedSongs[index]?.title : "song image"}
-            className={`h-[2rem] object-cover rounded-[50%] ${
+            className={`h-[2rem] w-[2rem] object-cover rounded-[50%] ${
               isPlaying ? "moveCircle" : ""
             } text-white`}
             loading="lazy"

@@ -282,7 +282,7 @@ const History = () => {
               <span className=" text-[#a7a6a6]">Library</span>
               <ul className="flex flex-col justify-evenly min-h-[70vh]">
                 <div
-                  className="flex items-center"
+                  className="flex items-center hover:text-[#623cca] transition-all"
                   onClick={() => {
                     navigate(`/`);
                     checkPlayer();
@@ -294,7 +294,7 @@ const History = () => {
                   <li className="my-1 cursor-pointer">Home</li>
                 </div>
                 <div
-                  className="flex items-center mt-4"
+                  className="flex items-center mt-4 hover:text-[#623cca] transition-all"
                   onClick={() => {
                     navigate(`/history`);
                     checkPlayer();
@@ -306,7 +306,7 @@ const History = () => {
                   <li className="my-1 cursor-pointer">History</li>
                 </div>
                 <div
-                  className="flex items-center"
+                  className="flex items-center hover:text-[#623cca] transition-all"
                   onClick={() => {
                     navigate(`/likedpage`);
                     checkPlayer();
@@ -318,7 +318,7 @@ const History = () => {
                   <li className="my-1 cursor-pointer">Liked</li>
                 </div>
                 <div
-                  className="flex items-center"
+                  className="flex items-center hover:text-[#623cca] transition-all"
                   onClick={() => {
                     navigate(`/playlistpage`);
                     checkPlayer();
@@ -355,7 +355,7 @@ const History = () => {
                         <img
                           src={song.image}
                           alt={song.fileName ? song.fileName : "image"}
-                          className="rounded-t-lg object-cover text-white"
+                          className="rounded-t-lg h-[15rem] w-full object-cover text-white"
                           loading="lazy"
                         />
                       </div>
@@ -400,7 +400,7 @@ const History = () => {
             alt={
               historySongs[index] ? historySongs[index]?.title : "song image"
             }
-            className={`h-[2rem] object-cover rounded-[50%] ${
+            className={`h-[2rem] w-[2rem] object-cover rounded-[50%] ${
               isPlaying ? "moveCircle" : ""
             } text-white`}
             loading="lazy"
