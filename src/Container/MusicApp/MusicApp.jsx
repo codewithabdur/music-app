@@ -880,6 +880,12 @@ const MusicApp = () => {
                   >
                     Dance Song
                   </li>
+                  {/* <li
+                    className="my-1 cursor-pointer hover:text-[#623cca] transition-all"
+                    onClick={() => setSelectedCategory("English")}
+                  >
+                    English Song
+                  </li> */}
                 </ul>
               </div>
               {isLoggedIn ? (
@@ -985,7 +991,9 @@ const MusicApp = () => {
             <div className="heroSection w-[70vw] md:w-[80vw] h-[70vh] overflow-scroll">
               <div className="md:w-[75vw] w-[65vw] mx-auto h-full">
                 <div className="grid grid-cols-1  sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto ">
-                  {filteredSongs().map((song, index) => {
+                  {filteredSongs()
+                  .sort((a, b) => a.title.localeCompare(b.title))
+                  .map((song, index) => {
                     const isSongInPlaylist = localPlaylist.some(
                       (playlist) => playlist.description === song.title
                     );
@@ -1166,6 +1174,7 @@ const MusicApp = () => {
               } text-white`}
               loading="lazy"
             />
+            <span className="text-[#fff] text-[10px]">{filteredSongs()[currentSongIndex]?.title}</span>
             <SkipPrevious
               style={{ fontSize: 40, color: "#fff" }}
               onClick={() =>
