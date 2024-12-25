@@ -5,6 +5,7 @@ import { RiAlbumFill } from "react-icons/ri";
 import { MdPlaylistPlay } from "react-icons/md";
 import "./MusicApp.css";
 import oldclient from "../../lib/oldclient";
+import client from "../../lib/client"
 import {
   PlayArrow,
   Pause,
@@ -34,6 +35,8 @@ import { useNavigate } from "react-router-dom";
 
 const MusicApp = () => {
   const [songs, setSongs] = useState([]);
+  const [tempSongs, setTempSongs] = useState([])
+  const [newSongs, setNewSongs] = useState([]);
   const [volume, setVolume] = useState(1);
   const [music, setMusic] = useState(1);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
@@ -502,45 +505,89 @@ const MusicApp = () => {
       };
     }
   }, [audioPlayer, music]);
+  useEffect(() => {
+    const fetchNewSongs = () => {
+      client
+        .fetch(
+          `
+      *[_type == "podcast"]{
+        title,
+        subtitle,
+        slug,
+        description,
+        copyright,
+        language,
+        file{
+          asset->{
+            url,
+          },
+        },
+        audioimg{
+          asset->{
+            url,
+          },
+        },
+        category
+      }
+      `
+        )
+        .then((newData) => {
+          setNewSongs(newData);  // Update state
+          fetchSongs(newData);   // Pass data directly
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    };
+  
+    const fetchSongs = (newData) => {
+      oldclient
+        .fetch(
+          `
+      *[_type == "podcast"]{
+        title,
+        subtitle,
+        slug,
+        description,
+        copyright,
+        language,
+        file{
+          asset->{
+            url,
+          },
+        },
+        audioimg{
+          asset->{
+            url,
+          },
+        },
+        category
+      }
+      `
+        )
+        .then((oldData) => {
+          const combined = [...oldData, ...newData];  // Combine directly
+          setSongs(combined);  // Set combined data
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    };
+  
+    fetchNewSongs();
+  }, []);
+  
 
-  const fetchSongs = () => {
-    oldclient
-      .fetch(
-        `
-    *[_type == "podcast"]{
-      title,
-      subtitle,
-      slug,
-      description,
-      copyright,
-      language,
-      file{
-        asset->{
-          url,
-        },
-      },
-      audioimg{
-        asset->{
-          url,
-        },
-      },
-      category
-    }
-    `
-      )
-      .then((data) => {
-        setSongs(data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
+  
+  
+
+
 
   useEffect(() => {
-      fetchSongs()
-      checkHistory()
-      fetchPlaylistSongs()
-      fetchLikedSongs()
+    checkHistory()
+    fetchPlaylistSongs()
+    fetchLikedSongs()
+    
   }, []);
 
   const handleDownload = async (musicUrl, fileName, index) => {
@@ -580,7 +627,7 @@ const MusicApp = () => {
     }
   };
 
- 
+
 
   const filteredSongs = () => {
     switch (selectedCategory) {
