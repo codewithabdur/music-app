@@ -340,6 +340,7 @@ const MusicApp = () => {
       fileName: fileName,
       desc: desc,
     });
+    console.log(index,fileName, file)
 
     if (audioPlayer) {
       audioPlayer.pause();
@@ -572,6 +573,8 @@ const MusicApp = () => {
       setDownloadStatus(false);
     }
   };
+
+ 
 
   const filteredSongs = () => {
     switch (selectedCategory) {
@@ -880,12 +883,13 @@ const MusicApp = () => {
                   >
                     Dance Song
                   </li>
-                  {/* <li
+                  <li
                     className="my-1 cursor-pointer hover:text-[#623cca] transition-all"
                     onClick={() => setSelectedCategory("English")}
                   >
                     English Song
-                  </li> */}
+                  </li>
+                
                 </ul>
               </div>
               {isLoggedIn ? (
@@ -1005,7 +1009,7 @@ const MusicApp = () => {
                         key={song.slug.current}
                         onClick={() =>
                           playSong(
-                            index,
+                            song.index,
                             song.audioimg.asset.url,
                             song.title,
                             song?.file?.asset?.url,
