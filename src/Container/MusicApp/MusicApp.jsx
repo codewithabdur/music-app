@@ -340,7 +340,13 @@ const MusicApp = () => {
       fileName: fileName,
       desc: desc,
     });
-    console.log(index,fileName, file)
+    console.log({
+      "index": index,
+      "title": fileName,
+      "desc" : desc,
+      "song": file,
+      "image" : image,
+    })
 
     if (audioPlayer) {
       audioPlayer.pause();
@@ -348,7 +354,7 @@ const MusicApp = () => {
     window.document.title = `CodeWithAbdur || MelodicVerse - ${fileName} Song Your Personalized Music Experience`;
 
     // Set up the new audio player
-    const newAudioPlayer = new Audio(songs[index]?.file?.asset?.url);
+    const newAudioPlayer = new Audio(file);
     setAudioPlayer(newAudioPlayer);
     setCurrentSongIndex(index);
     setMusic(0);
@@ -889,6 +895,12 @@ const MusicApp = () => {
                   >
                     English Song
                   </li>
+                  {/* <li
+                    className="my-1 cursor-pointer hover:text-[#623cca] transition-all"
+                    onClick={() => navigate(`/english`)}
+                  >
+                    English Song
+                  </li> */}
                 
                 </ul>
               </div>
@@ -1009,7 +1021,7 @@ const MusicApp = () => {
                         key={song.slug.current}
                         onClick={() =>
                           playSong(
-                            song.index,
+                            index,
                             song.audioimg.asset.url,
                             song.title,
                             song?.file?.asset?.url,
