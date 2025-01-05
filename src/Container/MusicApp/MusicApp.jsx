@@ -1330,7 +1330,7 @@ const MusicApp = () => {
             </div>)}
         </div>
         <div className="md:h-[14vh] fixed bg-[#000] bottom-0 right-0 left-0 z-30">
-          <div className="flex items-center justify-around h-[16.6vh] my-auto ">
+          <div className="flex items-center justify-around h-[16.6vh] my-auto">
             <img
               src={
                 filteredSongs()[currentSongIndex]?.audioimg?.asset?.url
