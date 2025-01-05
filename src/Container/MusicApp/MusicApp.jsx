@@ -36,6 +36,7 @@ import { useNavigate } from "react-router-dom";
 const MusicApp = () => {
   const [songs, setSongs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searched, setSearched] = useState("");
   const [newSongs, setNewSongs] = useState([]);
   const [volume, setVolume] = useState(1);
   const [music, setMusic] = useState(1);
@@ -137,8 +138,9 @@ const MusicApp = () => {
   };
 
   const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
+    setSearchQuery(searched);
   };
+
   const fetchPlaylistSongs = async () => {
     if (!userData || !userData.uid) {
       console.error("User data or UID is missing.");
@@ -1005,11 +1007,11 @@ const MusicApp = () => {
               <div className="search flex justify-center h-[40px] items-center">
                 <input
                   type="text"
-                  className="rounded-l-lg bg-[#e3e3e3] w-[80%] text-[#111] p-2 outline-none"
-                  value={searchQuery}
-                  onChange={handleSearch}
+                  className="rounded-l-lg border-r-2 border-[#111] bg-[#e3e3e3] w-[80%] text-[#111] p-2 outline-none"
+                  value={searched}
+                  onChange={(e) => setSearched(e.target.value) }
                 />
-                <span className="bg-[#e3e3e3] h-[47px] w-[40px] rounded-r-lg flex items-center justify-center">
+                <span onClick={handleSearch} className="bg-[#e3e3e3] h-[47px] w-[40px] rounded-r-lg flex items-center justify-center">
                   <FaSearch className="text-[#111] cursor-pointer" />
                 </span>
               </div>
@@ -1325,8 +1327,7 @@ const MusicApp = () => {
                     })}
                 </div>
               </div>
-            </div>
-          )}
+            </div>)}
         </div>
         <div className="md:h-[14vh] fixed bg-[#000] bottom-0 right-0 left-0 z-30">
           <div className="flex items-center justify-around h-[16.6vh] my-auto ">
