@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { FaHistory, FaVolumeMute } from "react-icons/fa";
+import { FaHistory, FaSearch, FaVolumeMute } from "react-icons/fa";
 import { IoMdMusicalNote } from "react-icons/io";
 import { RiAlbumFill } from "react-icons/ri";
 import { MdPlaylistPlay } from "react-icons/md";
 import "./MusicApp.css";
 import oldclient from "../../lib/oldclient";
-import client from "../../lib/client"
+import client from "../../lib/client";
 import {
   PlayArrow,
   Pause,
@@ -19,7 +19,7 @@ import { FaHeart } from "react-icons/fa";
 import { CgPlayListAdd } from "react-icons/cg";
 import { CgPlayListCheck } from "react-icons/cg";
 import { auth, db, storage } from "../../lib/firebase";
-import Disc from "../../assets/disk.png"
+import Disc from "../../assets/disk.png";
 import {
   collection,
   query,
@@ -35,7 +35,7 @@ import { useNavigate } from "react-router-dom";
 
 const MusicApp = () => {
   const [songs, setSongs] = useState([]);
-  const [tempSongs, setTempSongs] = useState([])
+  const [searchQuery, setSearchQuery] = useState("");
   const [newSongs, setNewSongs] = useState([]);
   const [volume, setVolume] = useState(1);
   const [music, setMusic] = useState(1);
@@ -52,8 +52,8 @@ const MusicApp = () => {
   const [songSaved, setSongSaved] = useState(null);
   const [songExist, setSongExist] = useState(null);
   const [songRemoved, setSongRemoved] = useState(null);
-  const [songNotRemoved, setSongNotRemoved] = useState(null)
-  const isLoggedIn = localStorage.getItem("uid")!=null
+  const [songNotRemoved, setSongNotRemoved] = useState(null);
+  const isLoggedIn = localStorage.getItem("uid") != null;
   const [downloadStatus, setDownloadStatus] = useState(
     Array(songs.length).fill(false)
   );
@@ -65,22 +65,19 @@ const MusicApp = () => {
     fileName: "",
     desc: "",
   });
-  const [showMore, setShowMore] = useState(
-    Array(songs.length).fill(false)
-  );
+  const [showMore, setShowMore] = useState(Array(songs.length).fill(false));
   const navigate = useNavigate();
-  
+
   const [muteAudio, setMuteAudio] = useState(true);
 
-  const mute = () =>{
-    setMuteAudio(!muteAudio)
-    if(muteAudio){
-      audioPlayer.volume = 0
+  const mute = () => {
+    setMuteAudio(!muteAudio);
+    if (muteAudio) {
+      audioPlayer.volume = 0;
+    } else {
+      audioPlayer.volume = 1;
     }
-    else{
-      audioPlayer.volume = 1
-    }
-  }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -113,12 +110,12 @@ const MusicApp = () => {
     };
     // Call the function immediately
     fetchUserData();
-    console.clear()
+    console.clear();
   }, []);
   const fetchLikedSongs = async () => {
     if (!userData) {
       console.error("User data or UID is missing.");
-      console.clear()
+      console.clear();
       return;
     }
 
@@ -136,32 +133,35 @@ const MusicApp = () => {
     } catch (error) {
       console.error("Error fetching liked songs:", error);
     }
-    console.clear()
+    console.clear();
   };
 
- const fetchPlaylistSongs = async () => {
-   if (!userData || !userData.uid) {
-     console.error("User data or UID is missing.");
-     return;
-   }
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
+  const fetchPlaylistSongs = async () => {
+    if (!userData || !userData.uid) {
+      console.error("User data or UID is missing.");
+      return;
+    }
 
-   const db = getFirestore();
-   const playlistDocRef = doc(db, "playlist", userData.uid);
 
-   try {
-     const playlistDocSnapshot = await getDoc(playlistDocRef);
+    const db = getFirestore();
+    const playlistDocRef = doc(db, "playlist", userData.uid);
 
-     if (playlistDocSnapshot.exists()) {
-       const playlistData = playlistDocSnapshot.data().songs
-       setLocalPlaylist(playlistData)
-     } else {
-       console.log("Playlist document does not exist");
-     }
-   } catch (error) {
-     console.error("Error fetching playlist:", error);
-   }
- };
+    try {
+      const playlistDocSnapshot = await getDoc(playlistDocRef);
 
+      if (playlistDocSnapshot.exists()) {
+        const playlistData = playlistDocSnapshot.data().songs;
+        setLocalPlaylist(playlistData);
+      } else {
+        console.log("Playlist document does not exist");
+      }
+    } catch (error) {
+      console.error("Error fetching playlist:", error);
+    }
+  };
 
   const handleLiked = async (url, image, description, title) => {
     if (!userData || !userData.uid) {
@@ -289,7 +289,6 @@ const MusicApp = () => {
     }
   };
 
-
   const toggleDownloadStatus = (index) => {
     const updatedStatus = [...downloadStatus];
     updatedStatus[index] = !updatedStatus[index];
@@ -319,7 +318,6 @@ const MusicApp = () => {
     }
   };
 
-
   const handleMusicChange = (event) => {
     const value = parseFloat(event.target.value); // Parse float instead of int
     if (
@@ -344,12 +342,12 @@ const MusicApp = () => {
       desc: desc,
     });
     console.log({
-      "index": index,
-      "title": fileName,
-      "desc" : desc,
-      "song": file,
-      "image" : image,
-    })
+      index: index,
+      title: fileName,
+      desc: desc,
+      song: file,
+      image: image,
+    });
 
     if (audioPlayer) {
       audioPlayer.pause();
@@ -408,7 +406,6 @@ const MusicApp = () => {
       // console.clear();
     }
   };
-
 
   const checkPlayer = () => {
     if (audioPlayer) {
@@ -532,14 +529,14 @@ const MusicApp = () => {
       `
         )
         .then((newData) => {
-          setNewSongs(newData);  // Update state
-          fetchSongs(newData);   // Pass data directly
+          setNewSongs(newData); // Update state
+          fetchSongs(newData); // Pass data directly
         })
         .catch((err) => {
           console.log(err);
         });
     };
-  
+
     const fetchSongs = (newData) => {
       oldclient
         .fetch(
@@ -566,28 +563,21 @@ const MusicApp = () => {
       `
         )
         .then((oldData) => {
-          const combined = [...oldData, ...newData];  // Combine directly
-          setSongs(combined);  // Set combined data
+          const combined = [...oldData, ...newData]; // Combine directly
+          setSongs(combined); // Set combined data
         })
         .catch((err) => {
           console.log(err);
         });
     };
-  
+
     fetchNewSongs();
   }, []);
-  
-
-  
-  
-
-
 
   useEffect(() => {
-    checkHistory()
-    fetchPlaylistSongs()
-    fetchLikedSongs()
-    
+    checkHistory();
+    fetchPlaylistSongs();
+    fetchLikedSongs();
   }, []);
 
   const handleDownload = async (musicUrl, fileName, index) => {
@@ -627,16 +617,29 @@ const MusicApp = () => {
     }
   };
 
-
-
   const filteredSongs = () => {
-    switch (selectedCategory) {
-      case "All":
-        return songs;
-      default:
-        return songs.filter((song) => song.category.includes(selectedCategory));
+    let filtered = songs;
+  
+    // Filter by search query (title, description, or category)
+    if (searchQuery) {
+      filtered = filtered.filter((song) =>
+        song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        song.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        song.category.some((cat) => cat.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
     }
+  
+    // Filter by category
+    if (selectedCategory !== "All") {
+      filtered = filtered.filter((song) =>
+        song.category.includes(selectedCategory)
+      );
+    }
+  
+    return filtered;
   };
+  
+  
 
   const handleTimeUpdate = () => {
     setCurrentTime(audioPlayer.currentTime);
@@ -671,18 +674,18 @@ const MusicApp = () => {
           ];
 
           await setDoc(playlistDocRef, { songs: updatedPlaylist });
-          console.log("Song removed from playlist successfully!")
-          setSongRemoved("Song removed from playlist successfully!")
+          console.log("Song removed from playlist successfully!");
+          setSongRemoved("Song removed from playlist successfully!");
           setTimeout(() => {
-            setSongRemoved(null)
-          },2000)
+            setSongRemoved(null);
+          }, 2000);
           return updatedPlaylist; // return the updated playlist
         } else {
           console.log("Index out of bounds", error);
           setSongNotRemoved("Index out of bounds");
-           setTimeout(() => {
-             setSongNotRemoved(null);
-           }, 2000);
+          setTimeout(() => {
+            setSongNotRemoved(null);
+          }, 2000);
         }
       } else {
         console.log("Playlist document does not exist", error);
@@ -693,7 +696,9 @@ const MusicApp = () => {
       }
     } catch (error) {
       console.error("Error removing song from playlist:", error);
-      setSongNotRemoved("Sorry might be internet Issues or userData is Not Found!")
+      setSongNotRemoved(
+        "Sorry might be internet Issues or userData is Not Found!"
+      );
       setTimeout(() => {
         setSongNotRemoved(null);
       }, 2000);
@@ -738,171 +743,276 @@ const MusicApp = () => {
       }
     } catch (error) {
       console.error("Error removing song from liked:", error);
-      setSongNotRemoved("Sorry might be internet Issues or userData is Not Found!")
+      setSongNotRemoved(
+        "Sorry might be internet Issues or userData is Not Found!"
+      );
       setTimeout(() => {
         setSongNotRemoved(null);
       }, 2000);
     }
   };
 
-     const toggleShowMore = (index) => {
-       setShowMore((prevShowMore) => {
-         const updatedShowMore = [...prevShowMore];
-         updatedShowMore[songIndex] = !updatedShowMore[songIndex];
-         return updatedShowMore;
-       });
-     };
+  const toggleShowMore = (index) => {
+    setShowMore((prevShowMore) => {
+      const updatedShowMore = [...prevShowMore];
+      updatedShowMore[songIndex] = !updatedShowMore[songIndex];
+      return updatedShowMore;
+    });
+  };
 
   return (
     <>
       <div>
         {songSaved !== null && (
-        <div className="absolute top-1 right-1 z-10">
-          <div aria-live="assertive" className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6">
-            <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
-              <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                <div className="p-4">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0">
-                      <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="ml-3 w-0 flex-1 pt-0.5">
-                      <p className="text-sm font-medium text-gray-900">Successfully saved!</p>
-                      <p className="mt-1 text-sm text-gray-500">{songSaved}</p>
-                    </div>
-                    <div className="ml-4 flex flex-shrink-0">
-                      <button
-                        onClick={() => setSongSaved(null)}
-                        type="button"
-                        className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                      >
-                        <span className="sr-only">Close</span>
-                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                          <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+          <div className="absolute top-1 right-1 z-10">
+            <div
+              aria-live="assertive"
+              className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
+            >
+              <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+                <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                  <div className="p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg
+                          className="h-6 w-6 text-green-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
                         </svg>
-                      </button>
+                      </div>
+                      <div className="ml-3 w-0 flex-1 pt-0.5">
+                        <p className="text-sm font-medium text-gray-900">
+                          Successfully saved!
+                        </p>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {songSaved}
+                        </p>
+                      </div>
+                      <div className="ml-4 flex flex-shrink-0">
+                        <button
+                          onClick={() => setSongSaved(null)}
+                          type="button"
+                          className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        >
+                          <span className="sr-only">Close</span>
+                          <svg
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {songExist !== null && (
-        <div className="absolute top-1 right-1 z-10">
-          <div aria-live="assertive" className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6">
-            <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
-              <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                <div className="p-4">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0">
-                      <svg className="h-6 w-6 text-[#ff0808]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="ml-3 w-0 flex-1 pt-0.5">
-                      <p className="text-sm font-medium text-gray-900">Ooops!</p>
-                      <p className="mt-1 text-sm text-gray-500">{songExist}</p>
-                    </div>
-                    <div className="ml-4 flex flex-shrink-0">
-                      <button
-                        onClick={() => setSongExist(null)}
-                        type="button"
-                        className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                      >
-                        <span className="sr-only">Close</span>
-                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                          <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+        {songExist !== null && (
+          <div className="absolute top-1 right-1 z-10">
+            <div
+              aria-live="assertive"
+              className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
+            >
+              <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+                <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                  <div className="p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg
+                          className="h-6 w-6 text-[#ff0808]"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
                         </svg>
-                      </button>
+                      </div>
+                      <div className="ml-3 w-0 flex-1 pt-0.5">
+                        <p className="text-sm font-medium text-gray-900">
+                          Ooops!
+                        </p>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {songExist}
+                        </p>
+                      </div>
+                      <div className="ml-4 flex flex-shrink-0">
+                        <button
+                          onClick={() => setSongExist(null)}
+                          type="button"
+                          className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        >
+                          <span className="sr-only">Close</span>
+                          <svg
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {songNotRemoved !== null && (
-        <div className="absolute top-1 right-1 z-10">
-          <div aria-live="assertive" className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6">
-            <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
-              <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                <div className="p-4">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0">
-                      <svg className="h-6 w-6 text-[#ff0808]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="ml-3 w-0 flex-1 pt-0.5">
-                      <p className="text-sm font-medium text-gray-900">Ooops!</p>
-                      <p className="mt-1 text-sm text-gray-500">{songNotRemoved}</p>
-                    </div>
-                    <div className="ml-4 flex flex-shrink-0">
-                      <button
-                        onClick={() => setSongNotRemoved(null)}
-                        type="button"
-                        className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                      >
-                        <span className="sr-only">Close</span>
-                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                          <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+        {songNotRemoved !== null && (
+          <div className="absolute top-1 right-1 z-10">
+            <div
+              aria-live="assertive"
+              className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
+            >
+              <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+                <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                  <div className="p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg
+                          className="h-6 w-6 text-[#ff0808]"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
                         </svg>
-                      </button>
+                      </div>
+                      <div className="ml-3 w-0 flex-1 pt-0.5">
+                        <p className="text-sm font-medium text-gray-900">
+                          Ooops!
+                        </p>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {songNotRemoved}
+                        </p>
+                      </div>
+                      <div className="ml-4 flex flex-shrink-0">
+                        <button
+                          onClick={() => setSongNotRemoved(null)}
+                          type="button"
+                          className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        >
+                          <span className="sr-only">Close</span>
+                          <svg
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {songRemoved !== null && (
-        <div className="absolute top-1 right-1 z-10">
-          <div aria-live="assertive" className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6">
-            <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
-              <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                <div className="p-4">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0">
-                      <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="ml-3 w-0 flex-1 pt-0.5">
-                      <p className="text-sm font-medium text-gray-900">Successfully saved!</p>
-                      <p className="mt-1 text-sm text-gray-500">{songRemoved}</p>
-                    </div>
-                    <div className="ml-4 flex flex-shrink-0">
-                      <button
-                        onClick={() => setSongRemoved(null)}
-                        type="button"
-                        className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                      >
-                        <span className="sr-only">Close</span>
-                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                          <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+        {songRemoved !== null && (
+          <div className="absolute top-1 right-1 z-10">
+            <div
+              aria-live="assertive"
+              className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
+            >
+              <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+                <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                  <div className="p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg
+                          className="h-6 w-6 text-green-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
                         </svg>
-                      </button>
+                      </div>
+                      <div className="ml-3 w-0 flex-1 pt-0.5">
+                        <p className="text-sm font-medium text-gray-900">
+                          Successfully saved!
+                        </p>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {songRemoved}
+                        </p>
+                      </div>
+                      <div className="ml-4 flex flex-shrink-0">
+                        <button
+                          onClick={() => setSongRemoved(null)}
+                          type="button"
+                          className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        >
+                          <span className="sr-only">Close</span>
+                          <svg
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
         {/* ------------------------Alert-------------------------- */}
         <div className="flex h-[70vh]">
           <div className="sideBar md:w-[20vw] w-[40vw]">
             <div className="flex flex-col md:justify-center justify-start md:items-center items-end text-[#fff] text-[20px] font-bold">
+              <div className="search flex justify-center h-[40px] items-center">
+                <input
+                  type="text"
+                  className="rounded-l-lg bg-[#e3e3e3] w-[80%] text-[#111] p-2 outline-none"
+                  value={searchQuery}
+                  onChange={handleSearch}
+                />
+                <span className="bg-[#e3e3e3] h-[47px] w-[40px] rounded-r-lg flex items-center justify-center">
+                  <FaSearch className="text-[#111] cursor-pointer" />
+                </span>
+              </div>
               <div className="mb-4 md:mt-8 p-2">
                 <span className=" text-[#a7a6a6]">Browse</span>
                 <ul className="flex flex-col">
@@ -948,7 +1058,6 @@ const MusicApp = () => {
                   >
                     English Song
                   </li> */}
-                
                 </ul>
               </div>
               {isLoggedIn ? (
@@ -1055,41 +1164,41 @@ const MusicApp = () => {
               <div className="md:w-[75vw] w-[65vw] mx-auto h-full">
                 <div className="grid grid-cols-1  sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto ">
                   {filteredSongs()
-                  .sort((a, b) => a.title.localeCompare(b.title))
-                  .map((song, index) => {
-                    const isSongInPlaylist = localPlaylist.some(
-                      (playlist) => playlist.description === song.title
-                    );
-                    const isSongInLiked = localLiked.some(
-                      (liked) => liked.title === song.title
-                    );
-                    return (
-                      <div
-                        key={song.slug.current}
-                        onClick={() =>
-                          playSong(
-                            index,
-                            song.audioimg.asset.url,
-                            song.title,
-                            song?.file?.asset?.url,
-                            song?.description
-                          )
-                        }
-                        className=" rounded-lg cursor-pointer select-none shadow-lg bg-white boxShadow border-black border hover:bg-[#5a0a72] transition-all duration-300"
-                      >
-                        <div className="relative overflow-hidden">
-                          <img
-                            src={song.audioimg.asset.url}
-                            alt={song.title ? song.title : "image"}
-                            className="rounded-t-lg object-cover h-[15rem] w-full text-white"
-                            loading="lazy"
-                          />
-                        </div>
-                        <div className="flex justify-between">
-                          <p className="pl-2 pb-2 text-[15px] font-bold text-[#b3b3b3] mt-2">
-                            {song.title}
-                          </p>
-                          {/* {showMore[index] ? (
+                    .sort((a, b) => a.title.localeCompare(b.title))
+                    .map((song, index) => {
+                      const isSongInPlaylist = localPlaylist.some(
+                        (playlist) => playlist.description === song.title
+                      );
+                      const isSongInLiked = localLiked.some(
+                        (liked) => liked.title === song.title
+                      );
+                      return (
+                        <div
+                          key={song.slug.current}
+                          onClick={() =>
+                            playSong(
+                              index,
+                              song.audioimg.asset.url,
+                              song.title,
+                              song?.file?.asset?.url,
+                              song?.description
+                            )
+                          }
+                          className=" rounded-lg cursor-pointer select-none shadow-lg bg-white boxShadow border-black border hover:bg-[#5a0a72] transition-all duration-300"
+                        >
+                          <div className="relative overflow-hidden">
+                            <img
+                              src={song.audioimg.asset.url}
+                              alt={song.title ? song.title : "image"}
+                              className="rounded-t-lg object-cover h-[15rem] w-full text-white"
+                              loading="lazy"
+                            />
+                          </div>
+                          <div className="flex justify-between">
+                            <p className="pl-2 pb-2 text-[15px] font-bold text-[#b3b3b3] mt-2">
+                              {song.title}
+                            </p>
+                            {/* {showMore[index] ? (
                             <p className="pl-2 py-2 text-lg text-[#b3b3b3] mt-2">
                               {song.description}....
                               <a
@@ -1110,110 +1219,110 @@ const MusicApp = () => {
                               </a>
                             </p>
                           )} */}
+                            {isLoggedIn ? (
+                              <button
+                                className="downloadButton mr-1 my-2"
+                                onClick={() =>
+                                  handleDownload(
+                                    song?.file?.asset?.url,
+                                    song.title,
+                                    index
+                                  )
+                                }
+                              >
+                                {downloadStatus[index]
+                                  ? "Downloading.."
+                                  : "Download"}
+                              </button>
+                            ) : (
+                              <button
+                                className="downloadButton mr-1 my-2"
+                                onClick={() => navigate(`/login`)}
+                              >
+                                Download
+                              </button>
+                            )}
+                          </div>
                           {isLoggedIn ? (
-                            <button
-                              className="downloadButton mr-1 my-2"
-                              onClick={() =>
-                                handleDownload(
-                                  song?.file?.asset?.url,
-                                  song.title,
-                                  index
-                                )
-                              }
-                            >
-                              {downloadStatus[index]
-                                ? "Downloading.."
-                                : "Download"}
-                            </button>
+                            <div className="flex justify-between z-10">
+                              {isSongInLiked ? (
+                                <FaHeart
+                                  onClick={() => {
+                                    handeleRemoveLikedSong(index);
+                                    fetchLikedSongs();
+                                    fetchPlaylistSongs();
+                                  }}
+                                  className="text-[2rem] m-2 text-[#ff2d2d] "
+                                />
+                              ) : (
+                                <FaHeart
+                                  onClick={() => {
+                                    handleLiked(
+                                      song?.file?.asset?.url,
+                                      song?.audioimg?.asset?.url,
+                                      song?.description,
+                                      song?.title
+                                    );
+                                    fetchLikedSongs();
+                                    fetchPlaylistSongs();
+                                  }}
+                                  className="text-[2rem] m-2 text-[#efe9e9] z-40"
+                                />
+                              )}
+                              {isSongInPlaylist ? (
+                                <CgPlayListCheck
+                                  onClick={() => {
+                                    handeleRemoveSong(index);
+                                    fetchLikedSongs();
+                                    fetchPlaylistSongs();
+                                  }}
+                                  className="text-[2rem] m-2 text-[#646464] cursor-pointer z-40"
+                                />
+                              ) : (
+                                <CgPlayListAdd
+                                  className="text-[2rem] m-2 text-[#646464] z-40"
+                                  onClick={() => {
+                                    handlePlaylist(
+                                      song?.file?.asset?.url,
+                                      song.audioimg.asset.url,
+                                      song.description,
+                                      song.title
+                                    );
+                                    fetchLikedSongs();
+                                    fetchPlaylistSongs();
+                                  }}
+                                />
+                              )}
+                            </div>
                           ) : (
-                            <button
-                              className="downloadButton mr-1 my-2"
-                              onClick={() => navigate(`/login`)}
-                            >
-                              Download
-                            </button>
+                            <div className="flex justify-between z-10">
+                              {isSongInLiked ? (
+                                <FaHeart
+                                  onClick={() => navigate(`/login`)}
+                                  className="text-[2rem] m-2 text-[#ff2d2d] "
+                                />
+                              ) : (
+                                <FaHeart
+                                  onClick={() => navigate(`/login`)}
+                                  className="text-[2rem] m-2 text-[#efe9e9] z-40"
+                                />
+                              )}
+                              {isSongInPlaylist ? (
+                                <CgPlayListCheck
+                                  onClick={() => navigate(`/login`)}
+                                  className="text-[2rem] m-2 text-[#646464] cursor-pointer z-40"
+                                />
+                              ) : (
+                                <CgPlayListAdd
+                                  className="text-[2rem] m-2 text-[#646464] z-40"
+                                  onClick={() => navigate(`/login`)}
+                                />
+                              )}
+                            </div>
                           )}
                         </div>
-                        {isLoggedIn ? (
-                          <div className="flex justify-between z-10">
-                            {isSongInLiked ? (
-                              <FaHeart
-                                onClick={() => {
-                                  handeleRemoveLikedSong(index);
-                                  fetchLikedSongs();
-                                  fetchPlaylistSongs();
-                                }}
-                                className="text-[2rem] m-2 text-[#ff2d2d] "
-                              />
-                            ) : (
-                              <FaHeart
-                                onClick={() => {
-                                  handleLiked(
-                                    song?.file?.asset?.url,
-                                    song?.audioimg?.asset?.url,
-                                    song?.description,
-                                    song?.title
-                                  );
-                                  fetchLikedSongs();
-                                  fetchPlaylistSongs();
-                                }}
-                                className="text-[2rem] m-2 text-[#efe9e9] z-40"
-                              />
-                            )}
-                            {isSongInPlaylist ? (
-                              <CgPlayListCheck
-                                onClick={() => {
-                                  handeleRemoveSong(index);
-                                  fetchLikedSongs();
-                                  fetchPlaylistSongs();
-                                }}
-                                className="text-[2rem] m-2 text-[#646464] cursor-pointer z-40"
-                              />
-                            ) : (
-                              <CgPlayListAdd
-                                className="text-[2rem] m-2 text-[#646464] z-40"
-                                onClick={() => {
-                                  handlePlaylist(
-                                    song?.file?.asset?.url,
-                                    song.audioimg.asset.url,
-                                    song.description,
-                                    song.title
-                                  );
-                                  fetchLikedSongs();
-                                  fetchPlaylistSongs();
-                                }}
-                              />
-                            )}
-                          </div>
-                        ) : (
-                          <div className="flex justify-between z-10">
-                            {isSongInLiked ? (
-                              <FaHeart
-                                onClick={() => navigate(`/login`)}
-                                className="text-[2rem] m-2 text-[#ff2d2d] "
-                              />
-                            ) : (
-                              <FaHeart
-                                onClick={() => navigate(`/login`)}
-                                className="text-[2rem] m-2 text-[#efe9e9] z-40"
-                              />
-                            )}
-                            {isSongInPlaylist ? (
-                              <CgPlayListCheck
-                                onClick={() => navigate(`/login`)}
-                                className="text-[2rem] m-2 text-[#646464] cursor-pointer z-40"
-                              />
-                            ) : (
-                              <CgPlayListAdd
-                                className="text-[2rem] m-2 text-[#646464] z-40"
-                                onClick={() => navigate(`/login`)}
-                              />
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               </div>
             </div>
@@ -1237,7 +1346,9 @@ const MusicApp = () => {
               } text-white`}
               loading="lazy"
             />
-            <span className="text-[#fff] text-[10px]">{filteredSongs()[currentSongIndex]?.title}</span>
+            <span className="text-[#fff] text-[10px]">
+              {filteredSongs()[currentSongIndex]?.title}
+            </span>
             <SkipPrevious
               style={{ fontSize: 40, color: "#fff" }}
               onClick={() =>
