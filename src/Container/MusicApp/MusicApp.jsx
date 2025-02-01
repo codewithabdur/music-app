@@ -32,6 +32,8 @@ import {
 } from "firebase/firestore";
 import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
+import { TfiArrowCircleUp } from "react-icons/tfi";
+import { TfiArrowCircleDown } from "react-icons/tfi";
 
 const MusicApp = () => {
   const [songs, setSongs] = useState([]);
@@ -67,6 +69,8 @@ const MusicApp = () => {
     desc: "",
   });
   const [showMore, setShowMore] = useState(Array(songs.length).fill(false));
+  const [pageUp, setPageUp] = useState(true);
+  const [pageHeight, setPageHeight] = useState("14vh");
   const navigate = useNavigate();
 
   const [muteAudio, setMuteAudio] = useState(true);
@@ -79,6 +83,17 @@ const MusicApp = () => {
       audioPlayer.volume = 1;
     }
   };
+
+  const openPage = () => {
+    setPageUp(!pageUp);
+    setPageHeight(pageUp ? "16.6vh" : "70vh");
+  
+    // Scroll the page up when expanded
+    if (!pageUp) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+  
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -621,6 +636,7 @@ const MusicApp = () => {
 
   const filteredSongs = () => {
     let filtered = songs;
+
   
     // Filter by search query (title, description, or category)
     if (searchQuery) {
@@ -630,6 +646,8 @@ const MusicApp = () => {
         song.category.some((cat) => cat.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
+
+   
   
     // Filter by category
     if (selectedCategory !== "All") {
@@ -761,6 +779,8 @@ const MusicApp = () => {
       return updatedShowMore;
     });
   };
+
+
 
   return (
     <>
@@ -1177,14 +1197,14 @@ const MusicApp = () => {
                       return (
                         <div
                           key={song.slug.current}
-                          onClick={() =>
+                          onClick={() => {
                             playSong(
                               index,
                               song.audioimg.asset.url,
                               song.title,
                               song?.file?.asset?.url,
                               song?.description
-                            )
+                            )}
                           }
                           className=" rounded-lg cursor-pointer select-none shadow-lg bg-white boxShadow border-black border hover:bg-[#5a0a72] transition-all duration-300"
                         >
@@ -1246,7 +1266,7 @@ const MusicApp = () => {
                             )}
                           </div>
                           {isLoggedIn ? (
-                            <div className="flex justify-between z-10">
+                            <div className={` ${!pageUp ? "hidden": "flex"} justify-between z-10`}>
                               {isSongInLiked ? (
                                 <FaHeart
                                   onClick={() => {
@@ -1278,7 +1298,7 @@ const MusicApp = () => {
                                     fetchLikedSongs();
                                     fetchPlaylistSongs();
                                   }}
-                                  className="text-[2rem] m-2 text-[#646464] cursor-pointer z-40"
+                                  className={`text-[2rem] ${!pageUp ? "hidden": "flex"} m-2 text-[#646464] cursor-pointer z-40`}
                                 />
                               ) : (
                                 <CgPlayListAdd
@@ -1297,7 +1317,7 @@ const MusicApp = () => {
                               )}
                             </div>
                           ) : (
-                            <div className="flex justify-between z-10">
+                            <div className={`${!pageUp ? "hidden": "flex"} justify-between z-10`}>
                               {isSongInLiked ? (
                                 <FaHeart
                                   onClick={() => navigate(`/login`)}
@@ -1329,100 +1349,90 @@ const MusicApp = () => {
               </div>
             </div>)}
         </div>
-        <div className="md:h-[14vh] fixed bg-[#000] bottom-0 right-0 left-0 z-30">
-          <div className="flex items-center justify-around h-[16.6vh] my-auto">
-            <img
-              src={
-                filteredSongs()[currentSongIndex]?.audioimg?.asset?.url
-                  ? filteredSongs()[currentSongIndex]?.audioimg?.asset?.url
-                  : Disc
-              }
-              alt={
-                filteredSongs()[currentSongIndex]
-                  ? filteredSongs()[currentSongIndex]?.title
-                  : "song image"
-              }
-              className={`h-[2rem] w-[2rem] object-cover rounded-[50%] ${
-                isPlaying ? "moveCircle" : ""
-              } text-white`}
-              loading="lazy"
-            />
-            <span className="text-[#fff] text-[10px]">
-              {filteredSongs()[currentSongIndex]?.title}
-            </span>
-            <SkipPrevious
-              style={{ fontSize: 40, color: "#fff" }}
-              onClick={() =>
-                handlePrev(
-                  filteredSongs()[currentSongIndex]?.audioimg?.asset?.url,
-                  filteredSongs()[currentSongIndex]?.file?.asset?.url,
-                  filteredSongs()[currentSongIndex]?.title
-                )
-              }
-              className="cursor-pointer"
-            />
-            <span onClick={playPause} className="cursor-pointer">
-              {isPlaying ? (
-                <Pause style={{ fontSize: 40, color: "#fff" }} />
-              ) : (
-                <PlayArrow style={{ fontSize: 40, color: "#fff" }} />
-              )}
-            </span>
 
-            <SkipNext
-              style={{ fontSize: 40, color: "#fff" }}
-              onClick={() =>
-                handleNext(
-                  filteredSongs()[currentSongIndex]?.audioimg?.asset?.url,
-                  filteredSongs()[currentSongIndex]?.file?.asset?.url,
-                  filteredSongs()[currentSongIndex]?.title
-                )
-              }
-              className="cursor-pointer"
-            />
-            <div className="flex">
-              {muteAudio ? (
-                <VolumeUp
-                  style={{ fontSize: 40, color: "#fff", cursor: "pointer" }}
-                  onClick={mute}
-                />
-              ) : (
-                <FaVolumeMute
-                  className="text-[30px] text-[#fff] cursor-pointer"
-                  onClick={mute}
-                />
-              )}
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={handleVolumeChange}
-                style={{ width: "100px" }}
-              />
-            </div>
-            <div
-              style={{
-                width: "50%",
-                height: "1vh",
-                position: "relative",
-              }}
-            >
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={
-                  audioPlayer ? currentTime / audioPlayer.duration || 0 : 0
-                } // Ensure division by zero is handled
-                onChange={handleMusicChange}
-                style={{ width: "100%" }}
-              />
-            </div>
+        {/* ----------------------Song bottom -------progress */}
+
+
+        <div className={`fixed bg-[#000] bottom-0 right-0 left-0 z-30 transition-all duration-500 ease-in-out ${!pageUp ? "h-[70vh]" : "h-[16.6vh]"}`}>
+      {/* Toggle Button */}
+      {!pageUp ? (
+        <TfiArrowCircleDown onClick={openPage} className="absolute right-4 -top-2 text-[#fff] text-[30px] cursor-pointer" />
+      ) : (
+        <TfiArrowCircleUp onClick={openPage} className="absolute right-4 -top-2 text-[#fff] text-[30px] cursor-pointer" />
+      )}
+
+      {/* Content */}
+      <div className={`flex ${pageUp ? "flex-row" : "flex-col" } items-center justify-evenly w-full h-full`}>
+        {/* Description - Visible when expanded */}
+        {!pageUp && (
+          <div className="text-center text-white mb-1">
+            <h2 className="text-[30px] uppercase font-bold mt-2">Now Playing</h2>
           </div>
+        )}
+
+        {/* Music Controls */}
+        <div className={`flex ${pageUp ? "flex-row" : "flex-col" } items-center justify-evenly  overflow-scroll `}>
+          {/* Song Image */}
+          <img
+            src={filteredSongs()[currentSongIndex]?.audioimg?.asset?.url || "/default-image.png"}
+            alt={filteredSongs()[currentSongIndex]?.title || "Song Image"}
+            className={`w-[4rem] aspect-square my-2 object-cover rounded-full ${isPlaying ? "animate-spin" : ""}`}
+          />
+
+          {/* Song Title */}
+          <span className={`text-white ${pageUp ? "ml-6" : ""} font-[900] text-[14px]`}>{filteredSongs()[currentSongIndex]?.title}</span>
+
+          {/* Song Description */}
+
+          {!pageUp && (<p className="text-sm opacity-70 w-[50%] text-[#fff] mt-[12px] mx-auto">{`${filteredSongs()[currentSongIndex]?.description}....` || "Enjoy your music!"}</p>) }
+         
+         
         </div>
+        <div className={`flex my-6 items-center h-[8vh]  gap-4`}>
+
+{/* Previous Button */}
+<SkipPrevious className="cursor-pointer text-white text-[40px] mt-3" onClick={() => handlePrev()} />
+
+{/* Play/Pause Button */}
+<span onClick={playPause} className="cursor-pointer">
+  {isPlaying ? <Pause className="text-white text-[40px] mt-3" /> : <PlayArrow className="text-white text-[40px] mt-3" />}
+</span>
+
+{/* Next Button */}
+<SkipNext className="cursor-pointer text-white text-[40px] mt-3" onClick={() => handleNext()} />
+
+
+        {/* Volume & Progress Bar */}
+        <div className="flex items-center mt-4 gap-4">
+          {/* Mute Button */}
+          {muteAudio ? (
+            <VolumeUp className="cursor-pointer text-white text-[30px]" onClick={mute} />
+          ) : (
+            <FaVolumeMute className="cursor-pointer text-white text-[30px]" onClick={mute} />
+          )}
+
+
+          {/* Volume Slider */}
+          <input type="range" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} className="w-[100px]" />
+
+          {/* Progress Bar */}
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={audioPlayer ? currentTime / audioPlayer.duration || 0 : 0}
+            onChange={handleMusicChange}
+            className={`${pageUp ? "md:w-[400px] w-[100px]" : `md:w-[700px] w-[100px]`}`}
+          />
+          
+        </div>
+        </div>
+      </div>
+    </div>
+
+
+        {/* ---------------------------End Song Progress--------------------- */}
       </div>
     </>
   );
