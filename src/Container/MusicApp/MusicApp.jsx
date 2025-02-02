@@ -154,6 +154,7 @@ const MusicApp = () => {
 
   const handleSearch = (e) => {
     setSearchQuery(searched);
+    setSearched("");
   };
 
   const fetchPlaylistSongs = async () => {
@@ -1031,8 +1032,8 @@ const MusicApp = () => {
                   value={searched}
                   onChange={(e) => setSearched(e.target.value) }
                 />
-                <span onClick={handleSearch} className="bg-[#e3e3e3] h-[47px] w-[40px] rounded-r-lg flex items-center justify-center">
-                  <FaSearch className="text-[#111] cursor-pointer" />
+                <span onClick={handleSearch} className="bg-[#e3e3e3] cursor-pointer h-[47px] w-[40px] rounded-r-lg flex items-center justify-center">
+                  <FaSearch type="submit" onSubmit={handleSearch} className="text-[#111] cursor-pointer" />
                 </span>
               </div>
               <div className="mb-4 md:mt-8 p-2">
@@ -1083,7 +1084,7 @@ const MusicApp = () => {
                 </ul>
               </div>
               {isLoggedIn ? (
-                <div className="md:my-4 p-2">
+                <div className="md:my-4 hidden p-2">
                   <span className=" text-[#a7a6a6]">Library</span>
                   <ul className="flex flex-col">
                     <div
@@ -1125,7 +1126,7 @@ const MusicApp = () => {
                   </ul>
                 </div>
               ) : (
-                <div className="md:my-4 p-2">
+                <div className="md:my-4 hidden p-2">
                   <span className=" text-[#a7a6a6]">Library</span>
                   <ul className="flex flex-col">
                     <div
@@ -1216,7 +1217,7 @@ const MusicApp = () => {
                               loading="lazy"
                             />
                           </div>
-                          <div className="flex justify-between">
+                          <div className="flex flex-col justify-between">
                             <p className="pl-2 pb-2 text-[15px] font-bold text-[#b3b3b3] mt-2">
                               {song.title}
                             </p>
@@ -1266,7 +1267,7 @@ const MusicApp = () => {
                             )}
                           </div>
                           {isLoggedIn ? (
-                            <div className={` ${!pageUp ? "hidden": "flex"} justify-between z-10`}>
+                            <div className={` ${!pageUp ? "hidden": "flex"} hidden justify-between z-10`}>
                               {isSongInLiked ? (
                                 <FaHeart
                                   onClick={() => {
@@ -1317,7 +1318,7 @@ const MusicApp = () => {
                               )}
                             </div>
                           ) : (
-                            <div className={`${!pageUp ? "hidden": "flex"} justify-between z-10`}>
+                            <div className={`${!pageUp ? "hidden": "flex"} hidden justify-between z-10`}>
                               {isSongInLiked ? (
                                 <FaHeart
                                   onClick={() => navigate(`/login`)}
@@ -1413,7 +1414,7 @@ const MusicApp = () => {
 
 
           {/* Volume Slider */}
-          <input type="range" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} className="w-[100px]" />
+          <input type="range" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} className="w-[100px] cursor-pointer" />
 
           {/* Progress Bar */}
           <input
@@ -1423,7 +1424,7 @@ const MusicApp = () => {
             step="0.01"
             value={audioPlayer ? currentTime / audioPlayer.duration || 0 : 0}
             onChange={handleMusicChange}
-            className={`${pageUp ? "md:w-[400px] w-[100px]" : `md:w-[700px] w-[100px]`}`}
+            className={`${pageUp ? "md:w-[600px] w-[100px]" : `md:w-[700px] w-[100px]`} cursor-pointer`}
           />
           
         </div>

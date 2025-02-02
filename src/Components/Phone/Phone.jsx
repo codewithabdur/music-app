@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PhoneInput from "react-phone-input-2";
 import { FaHome } from "react-icons/fa";
 import "react-phone-input-2/lib/style.css";
@@ -21,10 +21,36 @@ const Phone = () => {
   const [hideRecaptcha, setHideRecaptcha] = useState(true);
   const navigate = useNavigate();
 
+    // ✅ Initialize reCAPTCHA once
+    useEffect(() => {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha", {
+          size: "invisible", // Or 'normal' if you want it visible
+          callback: (response) => {
+            console.log("reCAPTCHA verified:", response);
+          },
+          "expired-callback": () => {
+            console.log("reCAPTCHA expired, refresh required.");
+          },
+        });
+    
+        window.recaptchaVerifier.render().then((widgetId) => {
+          window.recaptchaWidgetId = widgetId;
+        });
+      }
+    }, []);
+    
+
+
   const sendOtp = async () => {
+
     try {
       setSending(true);
-      const recaptcha = new RecaptchaVerifier(auth, "recaptcha", {});
+      // ✅ Use the existing recaptchaVerifier instance
+    const recaptcha = window.recaptchaVerifier;
+
+    // ✅ Ensure reCAPTCHA is solved before proceeding
+    await recaptcha.verify();
       const confirmation = await signInWithPhoneNumber(auth, phone, recaptcha);
       setUser(confirmation);
       setOtpSend(true);
@@ -102,6 +128,8 @@ const Phone = () => {
             capctha
           </Button></div> */}
           {/* <p className="mt-2 text-white">Please verify Only Once</p> */}
+           {/* ✅ reCAPTCHA is now visible and clickable */}
+           <div id="recaptcha" className="mt-4"></div>
           <Button
             onClick={sendOtp}
             disabled={sending}
@@ -114,6 +142,7 @@ const Phone = () => {
           >
             <span>{sending ? "Sending.." : "Send otp"}</span>
           </Button>
+          
           {hideRecaptcha && (
             <div id="recaptcha" style={{ marginTop: "10px" }}></div>
           )}

@@ -26,6 +26,7 @@ const Register = () => {
     zipCode: "",
     city: "",
     district: "",
+    number: "",
     country: "",
     email: "",
     password: "",
@@ -99,7 +100,7 @@ const Register = () => {
             fullName: userData.fullName,
             userName: userData.userName,
             zipCode: userData.zipCode,
-            phoneNumber: verifiedPhone,
+            phoneNumber: userData.number,
             city: userData.city,
             district: userData.district,
             country: userData.country,
@@ -121,7 +122,7 @@ const Register = () => {
             fullName: userData.fullName,
             userName: userData.userName,
             zipCode: userData.zipCode,
-            phoneNumber: verifiedPhone,
+            phoneNumber: userData.number,
             city: userData.city,
             district: userData.district,
             country: userData.country,
@@ -537,10 +538,10 @@ const Register = () => {
                 className="shadow appearance-none border rounded w-full p-3 text-gray-700 leading-tight focus:ring transform transition hover:scale-[1.01] duration-300 ease-in-out"
                 id="phoneNumber"
                 type="text"
-                placeholder="Enter Your District Name here.."
+                placeholder="Enter Your Phone Number here.."
                 required
-                name="phoneNumber"
-                value={verifiedPhone}
+                name="number"
+                value={userData.number}
                 onChange={(e) => {
                   postUserData(e);
                 }}
