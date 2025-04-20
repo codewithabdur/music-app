@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaHistory, FaSearch, FaVolumeMute } from "react-icons/fa";
-import { IoMdMusicalNote } from "react-icons/io";
-import { RiAlbumFill } from "react-icons/ri";
 import { MdPlaylistPlay } from "react-icons/md";
 import "./MusicApp.css";
 import oldclient from "../../lib/oldclient";
@@ -19,7 +17,7 @@ import { FaHeart } from "react-icons/fa";
 import { CgPlayListAdd } from "react-icons/cg";
 import { CgPlayListCheck } from "react-icons/cg";
 import { auth, db, storage } from "../../lib/firebase";
-import Disc from "../../assets/disk.png";
+import { ImLoop } from "react-icons/im";
 import {
   collection,
   query,
@@ -45,16 +43,20 @@ const MusicApp = () => {
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [audioPlayer, setAudioPlayer] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [download, setDownload] = useState(false);
-  const [liked, setLiked] = useState([]);
-  const [alert, setAlert] = useState(false);
+  // const [download, setDownload] = useState(false);
+  // const [liked, setLiked] = useState([]);
+  const [loop, setLoop] = useState(false)
+  // const [alert, setAlert] = useState(false);
   const [userData, setUserData] = useState([]);
-  const [playlist, setPlaylist] = useState([]);
+  // const [playlist, setPlaylist] = useState([]);
   const [localLiked, setLocalLiked] = useState([]);
   const [localPlaylist, setLocalPlaylist] = useState([]);
   const [songSaved, setSongSaved] = useState(null);
   const [songExist, setSongExist] = useState(null);
   const [songRemoved, setSongRemoved] = useState(null);
+  const [currentImage, setCurrentImge] = useState("")
+  const [currentTitle, setCurrentTitle] = useState("")
+  const [currentDesc, setCurrentDesc] = useState("")
   const [songNotRemoved, setSongNotRemoved] = useState(null);
   const isLoggedIn = localStorage.getItem("uid") != null;
   const [downloadStatus, setDownloadStatus] = useState(
@@ -72,7 +74,7 @@ const MusicApp = () => {
   const [pageUp, setPageUp] = useState(true);
   const [pageHeight, setPageHeight] = useState("14vh");
   const navigate = useNavigate();
-
+  const audioRef = useRef(null); 
   const [muteAudio, setMuteAudio] = useState(true);
 
   const mute = () => {
@@ -156,6 +158,15 @@ const MusicApp = () => {
     setSearchQuery(searched);
     setSearched("");
   };
+
+
+  const handleloop = () => {
+    setLoop(prev => !prev);
+  if (audioRef.current) {
+    audioRef.current.loop = !loop;
+  }
+    console.log(loop)
+  }
 
   const fetchPlaylistSongs = async () => {
     if (!userData || !userData.uid) {
@@ -352,21 +363,6 @@ const MusicApp = () => {
   };
 
   const playSong = (index, image, fileName, file, desc) => {
-    // Pause the previous audio player if it exists
-    setHistory({
-      file: file,
-      image: image,
-      fileName: fileName,
-      desc: desc,
-    });
-    console.log({
-      index: index,
-      title: fileName,
-      desc: desc,
-      song: file,
-      image: image,
-    });
-
     if (audioPlayer) {
       audioPlayer.pause();
     }
@@ -375,11 +371,15 @@ const MusicApp = () => {
     // Set up the new audio player
     const newAudioPlayer = new Audio(file);
     setAudioPlayer(newAudioPlayer);
+    setCurrentImge(image)
+    setCurrentDesc(desc)
+    setCurrentTitle(fileName)
     setCurrentSongIndex(index);
     setMusic(0);
     setIsPlaying(false);
     setVolume(audioPlayer ? audioPlayer.volume : volume);
     playPause();
+    audioRef = newAudioPlayer;
   };
   // console.log(userData.uid);
 
@@ -431,24 +431,54 @@ const MusicApp = () => {
     }
   };
 
-  const handleNext = (file, image, fileName, desc) => {
+  const handleNext = () => {
     if (audioPlayer) {
-      audioPlayer.pause();
+      if(!loop === true){
+        setAudioPlayer(
+          new Audio(filteredSongs()[currentSongIndex]?.file?.asset?.url)
+        );
+        audioPlayer.play()
+        setCurrentImge(filteredSongs()[currentSongIndex]?.audioimg?.asset?.url)
+        setCurrentTitle(filteredSongs()[currentSongIndex]?.title)
+        setCurrentDesc(filteredSongs()[currentSongIndex]?.description)
+      }else{
+        setAudioPlayer(
+          new Audio(filteredSongs()[currentSongIndex + 1]?.file?.asset?.url)
+        );
+        setCurrentImge(filteredSongs()[currentSongIndex + 1]?.audioimg?.asset?.url)
+        setCurrentTitle(filteredSongs()[currentSongIndex + 1]?.title)
+        setCurrentDesc(filteredSongs()[currentSongIndex + 1]?.description)
+      }
+     
     }
-    setAudioPlayer(
-      new Audio(filteredSongs()[currentSongIndex + 1]?.file?.asset?.url)
-    );
-    setCurrentSongIndex(currentSongIndex + 1);
+    if(!loop === true){
+      audioPlayer.pause()
+      setAudioPlayer(
+        new Audio(filteredSongs()[currentSongIndex]?.file?.asset?.url)
+      );
+      audioPlayer.play()
+      setCurrentImge(filteredSongs()[currentSongIndex]?.audioimg?.asset?.url)
+      setCurrentTitle(filteredSongs()[currentSongIndex]?.title)
+      setCurrentDesc(filteredSongs()[currentSongIndex]?.description) 
+    }else{
+      setAudioPlayer(
+        new Audio(filteredSongs()[currentSongIndex + 1]?.file?.asset?.url)
+      );
+      setCurrentImge(filteredSongs()[currentSongIndex + 1]?.audioimg?.asset?.url)
+      setCurrentTitle(filteredSongs()[currentSongIndex + 1]?.title)
+      setCurrentDesc(filteredSongs()[currentSongIndex + 1]?.description)
+    }
+    audioPlayer.pause();
     setMusic(0);
     setIsPlaying(false);
     setVolume(audioPlayer ? audioPlayer.volume : volume);
     playPause();
-    setHistory({
-      file: file,
-      image: image,
-      fileName: fileName,
-      desc: desc,
-    });
+    // setHistory({
+    //   file: file,
+    //   image: image,
+    //   fileName: fileName,
+    //   desc: desc,
+    // });
   };
   const handlePrev = (file, image, fileName, desc) => {
     if (audioPlayer) {
@@ -456,32 +486,42 @@ const MusicApp = () => {
     }
     if (currentSongIndex === 0) {
       setAudioPlayer(new Audio(filteredSongs()[0]?.file?.asset?.url));
+      
+      setCurrentImge(filteredSongs()[0]?.audioimg?.asset?.url)
+      setCurrentTitle(filteredSongs()[0]?.title)
+      setCurrentDesc(filteredSongs()[0]?.description)
       setCurrentSongIndex(0);
       setMusic(0);
       setIsPlaying(false);
       setVolume(audioPlayer ? audioPlayer.volume : volume);
       playPause();
-      setHistory({
-        file: file,
-        image: image,
-        fileName: fileName,
-        desc: desc,
-      });
+      // setHistory({
+      //   file: file,
+      //   image: image,
+      //   fileName: fileName,
+      //   desc: desc,
+      // });
+      audioRef = new Audio(filteredSongs()[0]?.file?.asset?.url);
     } else {
       setAudioPlayer(
         new Audio(filteredSongs()[currentSongIndex - 1]?.file?.asset?.url)
       );
+      
+      setCurrentImge(filteredSongs()[currentSongIndex - 1]?.audioimg?.asset?.url)
+      setCurrentTitle(filteredSongs()[currentSongIndex - 1]?.title)
+      setCurrentDesc(filteredSongs()[currentSongIndex - 1]?.description)
       setCurrentSongIndex(currentSongIndex - 1);
       setMusic(0);
       setIsPlaying(false);
       setVolume(audioPlayer ? audioPlayer.volume : volume);
       playPause();
-      setHistory({
-        file: file,
-        image: image,
-        fileName: fileName,
-        desc: desc,
-      });
+      // setHistory({
+      //   file: file,
+      //   image: image,
+      //   fileName: fileName,
+      //   desc: desc,
+      // });
+      audioRef = new Audio(filteredSongs()[currentSongIndex - 1]?.file?.asset?.url);
     }
   };
 
@@ -493,22 +533,52 @@ const MusicApp = () => {
 
       const handleEnded = () => {
         if (audioPlayer) {
-          audioPlayer.pause();
+          if(!loop === true){
+            setAudioPlayer(
+              new Audio(filteredSongs()[currentSongIndex]?.file?.asset?.url)
+            );
+            setCurrentImge(filteredSongs()[currentSongIndex]?.audioimg?.asset?.url)
+            setCurrentTitle(filteredSongs()[currentSongIndex]?.title)
+            setCurrentDesc(filteredSongs()[currentSongIndex]?.description)
+            audioPlayer.play()
+          }else{
+            setAudioPlayer(
+              new Audio(filteredSongs()[currentSongIndex + 1]?.file?.asset?.url)
+            );
+            setCurrentImge(filteredSongs()[currentSongIndex + 1]?.audioimg?.asset?.url)
+            setCurrentTitle(filteredSongs()[currentSongIndex + 1]?.title)
+            setCurrentDesc(filteredSongs()[currentSongIndex + 1]?.description)
+          }
+         
         }
-        setAudioPlayer(
-          new Audio(filteredSongs()[currentSongIndex + 1]?.file?.asset?.url)
-        );
-        setCurrentSongIndex(currentSongIndex + 1);
+        if(!loop === true){
+          audioPlayer.pause()
+          setAudioPlayer(
+            new Audio(filteredSongs()[currentSongIndex]?.file?.asset?.url)
+          );
+          audioPlayer.play()
+          setCurrentImge(filteredSongs()[currentSongIndex]?.audioimg?.asset?.url)
+          setCurrentTitle(filteredSongs()[currentSongIndex]?.title)
+          setCurrentDesc(filteredSongs()[currentSongIndex]?.description)
+        }else{
+          setAudioPlayer(
+            new Audio(filteredSongs()[currentSongIndex + 1]?.file?.asset?.url)
+          );
+          setCurrentImge(filteredSongs()[currentSongIndex + 1]?.audioimg?.asset?.url)
+          setCurrentTitle(filteredSongs()[currentSongIndex + 1]?.title)
+          setCurrentDesc(filteredSongs()[currentSongIndex + 1]?.description)
+        }
+        audioPlayer.pause();
         setMusic(0);
         setIsPlaying(false);
         setVolume(audioPlayer ? audioPlayer.volume : volume);
         playPause();
-        setHistory({
-          file: filteredSongs()[currentSongIndex + 1]?.file?.asset?.url,
-          image: filteredSongs()[currentSongIndex + 1]?.audioimg?.asset?.url,
-          fileName: filteredSongs()[currentSongIndex + 1]?.title,
-          desc: desc,
-        });
+        // setHistory({
+        //   file: filteredSongs()[currentSongIndex + 1]?.file?.asset?.url,
+        //   image: filteredSongs()[currentSongIndex + 1]?.audioimg?.asset?.url,
+        //   fileName: filteredSongs()[currentSongIndex + 1]?.title,
+        //   desc: desc,
+        // });
       };
 
       audioPlayer.addEventListener("loadedmetadata", handleLoadedMetadata);
@@ -520,6 +590,24 @@ const MusicApp = () => {
       };
     }
   }, [audioPlayer, music]);
+ 
+  const playSongAtIndex = (index) => {
+    const song = filteredSongs()[index];
+    if (!song) return;
+  
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
+  
+    const newAudio = new Audio(song.file.asset.url);
+    audioRef.current = newAudio;
+    setCurrentSongIndex(index);
+    newAudio.play();
+  };
+  
+ 
+  
   useEffect(() => {
     const fetchNewSongs = () => {
       client
@@ -583,6 +671,9 @@ const MusicApp = () => {
         .then((oldData) => {
           const combined = [...oldData, ...newData]; // Combine directly
           setSongs(combined); // Set combined data
+          setCurrentImge(combined[0]?.audioimg?.asset?.url); // Set the first image
+          setCurrentTitle(combined[0]?.title); // Set the first title
+          setCurrentDesc(combined[0]?.description); // Set the first description
         })
         .catch((err) => {
           console.log(err);
@@ -786,7 +877,7 @@ const MusicApp = () => {
   return (
     <>
       <div>
-        {songSaved !== null && (
+        {/* {songSaved !== null && (
           <div className="absolute top-1 right-1 z-10">
             <div
               aria-live="assertive"
@@ -1020,7 +1111,7 @@ const MusicApp = () => {
               </div>
             </div>
           </div>
-        )}
+        )} */}
         {/* ------------------------Alert-------------------------- */}
         <div className="flex h-[70vh]">
           <div className="sideBar md:w-[20vw] w-[40vw]">
@@ -1375,24 +1466,24 @@ const MusicApp = () => {
         <div className={`flex ${pageUp ? "flex-row" : "flex-col" } items-center justify-evenly  overflow-scroll `}>
           {/* Song Image */}
           <img
-            src={filteredSongs()[currentSongIndex]?.audioimg?.asset?.url || "/default-image.png"}
-            alt={filteredSongs()[currentSongIndex]?.title || "Song Image"}
+            src={currentImage || "/default-image.png"}
+            alt={currentTitle || "Song Image"}
             className={`w-[4rem] aspect-square my-2 object-cover rounded-full ${isPlaying ? "animate-spin" : ""}`}
           />
 
           {/* Song Title */}
-          <span className={`text-white ${pageUp ? "ml-6" : ""} font-[900] text-[14px]`}>{filteredSongs()[currentSongIndex]?.title}</span>
+          <span className={`text-white ${!pageUp ? "ml-6" : "hidden"} font-[900] md:text-[14px]`}>{currentTitle}</span>
 
           {/* Song Description */}
 
-          {!pageUp && (<p className="text-sm opacity-70 w-[50%] text-[#fff] mt-[12px] mx-auto">{`${filteredSongs()[currentSongIndex]?.description}....` || "Enjoy your music!"}</p>) }
+          {!pageUp && (<p className="text-sm opacity-70 w-[50%] text-[#fff] mt-[12px] mx-auto">{`${currentDesc}....` || "Enjoy your music!"}</p>) }
          
          
         </div>
         <div className={`flex my-6 items-center h-[8vh]  gap-4`}>
 
 {/* Previous Button */}
-<SkipPrevious className="cursor-pointer text-white text-[40px] mt-3" onClick={() => handlePrev()} />
+<SkipPrevious className="cursor-pointer text-white text-[20px] mt-3" onClick={() => handlePrev()} />
 
 {/* Play/Pause Button */}
 <span onClick={playPause} className="cursor-pointer">
@@ -1400,7 +1491,11 @@ const MusicApp = () => {
 </span>
 
 {/* Next Button */}
-<SkipNext className="cursor-pointer text-white text-[40px] mt-3" onClick={() => handleNext()} />
+<SkipNext className="cursor-pointer text-white text-[20px] mt-3" onClick={() => handleNext()} />
+
+  <span className={`text-[#fff] text-[20px] mt-3 cursor-pointer ${!loop ? "text-[#1cff64]" : "text-[#fff]"}`}>
+    <ImLoop  onClick={handleloop}/>
+  </span>
 
 
         {/* Volume & Progress Bar */}
@@ -1414,7 +1509,7 @@ const MusicApp = () => {
 
 
           {/* Volume Slider */}
-          <input type="range" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} className="w-[100px] cursor-pointer" />
+          <input type="range" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} className="md:w-[100px] cursor-pointer" />
 
           {/* Progress Bar */}
           <input
@@ -1424,7 +1519,7 @@ const MusicApp = () => {
             step="0.01"
             value={audioPlayer ? currentTime / audioPlayer.duration || 0 : 0}
             onChange={handleMusicChange}
-            className={`${pageUp ? "md:w-[600px] w-[100px]" : `md:w-[700px] w-[100px]`} cursor-pointer`}
+            className={`${pageUp ? "md:w-[600px] w-[100px]" : `md:w-[700px] w-[50px]`} cursor-pointer`}
           />
           
         </div>
