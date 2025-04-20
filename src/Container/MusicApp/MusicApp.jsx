@@ -1493,7 +1493,7 @@ const MusicApp = () => {
 {/* Next Button */}
 <SkipNext className="cursor-pointer text-white text-[20px] mt-3" onClick={() => handleNext()} />
 
-  <span className={`text-[#fff] text-[20px] mt-3 cursor-pointer ${!loop ? "text-[#1cff64]" : "text-[#fff]"}`}>
+  <span className={`text-[20px] mt-3 cursor-pointer ${!loop ? "text-[#1cff64]" : "text-[#fff]"}`}>
     <ImLoop  onClick={handleloop}/>
   </span>
 
